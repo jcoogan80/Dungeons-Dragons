@@ -384,10 +384,14 @@ function s6() {
   '<div class="fg"><label>Additional Notes</label><textarea oninput="ch.notes=this.value" style="min-height:70px">' + he(ch.notes) + '</textarea></div>' +
   '<div class="nav">' +
     '<button class="btn btn-back" onclick="nav(true)">&#8592; Back</button>' +
-    '<div style="display:flex;gap:10px;flex-wrap:wrap">' +
-      '<button class="btn btn-purple" onclick="showAiPanel()">&#10024; Bring to Life with AI</button>' +
-      '<button class="btn btn-gold" onclick="showSheet()">&#128424; Generate Sheet</button>' +
+    '<div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end">' +
+      '<button class="btn btn-purple" onclick="showAiPanel()">&#10024; AI</button>' +
+      '<button class="btn btn-gold" onclick="showSheet()">&#128424; Sheet</button>' +
     '</div>' +
+  '</div>' +
+  '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">' +
+    '<button onclick="showAiPanel()" style="width:100%;padding:14px;background:#5a2d82;color:#fff;border:none;border-radius:6px;font-family:Georgia,serif;font-size:1rem;font-weight:bold;cursor:pointer">&#10024; Bring to Life with AI</button>' +
+    '<button onclick="showSheet()" style="width:100%;padding:14px;background:var(--gold);color:var(--dark);border:none;border-radius:6px;font-family:Georgia,serif;font-size:1rem;font-weight:bold;cursor:pointer">&#128424; Generate Printable Sheet</button>' +
   '</div>';
 }
 
