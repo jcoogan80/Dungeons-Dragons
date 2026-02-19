@@ -130,6 +130,10 @@ input:focus, textarea:focus, select:focus { outline: 2px solid var(--gold); }
   <div class="header">
     <h1>&#9876; Character Creator &#9876;</h1>
     <p>Forge your hero's legend</p>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:12px;flex-wrap:wrap">
+      <button class="btn btn-purple" onclick="showAiPanel()" style="font-size:0.85rem;padding:8px 18px">&#10024; Bring to Life with AI</button>
+      <button class="btn btn-gold" onclick="showSheet()" style="font-size:0.85rem;padding:8px 18px">&#128424; Generate Sheet</button>
+    </div>
   </div>
   <div class="steps-bar" id="stepsBar"></div>
   <div class="card" id="stepContent"></div>
