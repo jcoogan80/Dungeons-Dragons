@@ -369,30 +369,26 @@ function s6() {
   var abCells = ABS.map(function(a){
     return '<div class="ab-cell"><div class="an">' + a + '</div><div class="as">' + ch.abilities[a] + '</div><div class="am">' + mstr(ch.abilities[a]) + '</div></div>';
   }).join('');
-  return '<h2>Summary</h2>' +
-  '<p style="margin-bottom:14px;color:#555;font-style:italic">Review your character, then generate your sheet or bring your character to life with AI.</p>' +
-  '<div class="s-row">' +
-    '<div class="sf"><label>Name</label><div class="v">' + he(ch.name||'—') + '</div></div>' +
-    '<div class="sf"><label>Race</label><div class="v">' + he(ch.race||'—') + (ch.subrace?' ('+he(ch.subrace)+')':'') + '</div></div>' +
-    '<div class="sf"><label>Class</label><div class="v">' + he(ch.class_||'—') + (ch.subclass?' - '+he(ch.subclass):'') + '</div></div>' +
-    '<div class="sf"><label>Level</label><div class="v">' + ch.level + '</div></div>' +
-    '<div class="sf"><label>Background</label><div class="v">' + he(ch.background||'—') + '</div></div>' +
-    '<div class="sf"><label>Alignment</label><div class="v">' + he(ch.alignment||'—') + '</div></div>' +
-  '</div>' +
-  '<div class="ab-row" style="margin:10px 0">' + abCells + '</div>' +
-  '<div style="font-size:0.88rem;margin-bottom:14px">Prof Bonus: <strong>+' + pb + '</strong> &nbsp;|&nbsp; Est. HP: <strong>' + hp + '</strong> &nbsp;|&nbsp; Initiative: <strong>' + mstr(ch.abilities.DEX) + '</strong></div>' +
-  '<div class="fg"><label>Additional Notes</label><textarea oninput="ch.notes=this.value" style="min-height:70px">' + he(ch.notes) + '</textarea></div>' +
-  '<div class="nav">' +
-    '<button class="btn btn-back" onclick="nav(true)">&#8592; Back</button>' +
-    '<div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end">' +
-      '<button class="btn btn-purple" onclick="showAiPanel()">&#10024; AI</button>' +
-      '<button class="btn btn-gold" onclick="showSheet()">&#128424; Sheet</button>' +
-    '</div>' +
-  '</div>' +
-  '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">' +
-    '<button onclick="showAiPanel()" style="width:100%;padding:14px;background:#5a2d82;color:#fff;border:none;border-radius:6px;font-family:Georgia,serif;font-size:1rem;font-weight:bold;cursor:pointer">&#10024; Bring to Life with AI</button>' +
-    '<button onclick="showSheet()" style="width:100%;padding:14px;background:var(--gold);color:var(--dark);border:none;border-radius:6px;font-family:Georgia,serif;font-size:1rem;font-weight:bold;cursor:pointer">&#128424; Generate Printable Sheet</button>' +
-  '</div>';
+
+  var html = '<h2>Summary</h2>';
+  html += '<p style="margin-bottom:14px;color:#555;font-style:italic">Review your character below, then choose an option.</p>';
+  html += '<div class="s-row">';
+  html += '<div class="sf"><label>Name</label><div class="v">' + he(ch.name||'—') + '</div></div>';
+  html += '<div class="sf"><label>Race</label><div class="v">' + he(ch.race||'—') + (ch.subrace?' ('+he(ch.subrace)+')':'') + '</div></div>';
+  html += '<div class="sf"><label>Class</label><div class="v">' + he(ch.class_||'—') + (ch.subclass?' - '+he(ch.subclass):'') + '</div></div>';
+  html += '<div class="sf"><label>Level</label><div class="v">' + ch.level + '</div></div>';
+  html += '<div class="sf"><label>Background</label><div class="v">' + he(ch.background||'—') + '</div></div>';
+  html += '<div class="sf"><label>Alignment</label><div class="v">' + he(ch.alignment||'—') + '</div></div>';
+  html += '</div>';
+  html += '<div class="ab-row" style="margin:10px 0">' + abCells + '</div>';
+  html += '<div style="font-size:0.88rem;margin-bottom:14px">Prof Bonus: <strong>+' + pb + '</strong> &nbsp;|&nbsp; Est. HP: <strong>' + hp + '</strong> &nbsp;|&nbsp; Initiative: <strong>' + mstr(ch.abilities.DEX) + '</strong></div>';
+  html += '<div class="fg"><label>Additional Notes</label><textarea oninput="ch.notes=this.value" style="min-height:70px">' + he(ch.notes) + '</textarea></div>';
+  html += '<div style="margin-top:20px;display:grid;grid-template-columns:1fr 1fr;gap:12px">';
+  html += '<button onclick="showAiPanel()" style="padding:16px;background:#5a2d82;color:#fff;border:none;border-radius:6px;font-family:Georgia,serif;font-size:0.95rem;font-weight:bold;cursor:pointer">&#10024; Bring to Life with AI</button>';
+  html += '<button onclick="showSheet()" style="padding:16px;background:#c9a84c;color:#2c1a0e;border:none;border-radius:6px;font-family:Georgia,serif;font-size:0.95rem;font-weight:bold;cursor:pointer">&#128424; Generate Sheet</button>';
+  html += '</div>';
+  html += '<div style="margin-top:10px"><button onclick="nav(true)" style="padding:10px 24px;background:#d4c090;color:#2c1a0e;border:none;border-radius:4px;font-family:Georgia,serif;font-size:0.92rem;font-weight:bold;cursor:pointer">&#8592; Back</button></div>';
+  return html;
 }
 
 function toggleSkill(name, checked) {
