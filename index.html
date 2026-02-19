@@ -54,6 +54,7 @@ input:focus, textarea:focus { outline: 2px solid var(--gold); }
 .chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
 .chip { font-size: 0.7rem; padding: 2px 8px; background: #e8d8a0; border: 1px solid var(--gold); border-radius: 10px; cursor: pointer; color: var(--dark); }
 .chip:hover { background: var(--gold); }
+
 /* Sheet */
 #sheet { display: none; background: var(--parchment); min-height: 100vh; }
 .sheet-inner { max-width: 800px; margin: 0 auto; padding: 30px; }
@@ -74,6 +75,7 @@ input:focus, textarea:focus { outline: 2px solid var(--gold); }
 .sk2 { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; font-size: 0.85rem; }
 .no-print { display: flex; gap: 10px; justify-content: center; padding: 16px 0; flex-wrap: wrap; }
 .portrait-drop { border: 2px dashed #b09060; border-radius: 6px; padding: 30px 20px; text-align: center; background: #fffdf5; margin-bottom: 10px; }
+
 /* AI Panel */
 #aiPanel { display: none; background: #0d0820; min-height: 100vh; }
 .ai-inner { max-width: 800px; margin: 0 auto; padding: 30px; }
@@ -95,6 +97,8 @@ input:focus, textarea:focus { outline: 2px solid var(--gold); }
 .prompt-box { background: #0d0820; border: 1px solid #7c4dff44; border-radius: 6px; padding: 10px; font-size: 0.82rem; color: #e0d0ff; line-height: 1.6; margin-bottom: 12px; }
 .img-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
 .img-btn { padding: 8px 16px; color: #fff; border: none; border-radius: 4px; font-family: Georgia, serif; font-size: 0.85rem; cursor: pointer; text-decoration: none; display: inline-block; }
+
+/* ===== PRINT STYLES — fit to one page ===== */
 @media print {
   #app { display: none !important; }
   #aiPanel { display: none !important; }
@@ -104,41 +108,26 @@ input:focus, textarea:focus { outline: 2px solid var(--gold); }
   .portrait-drop { display: none !important; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
-  /* Fit everything to one page */
   @page { margin: 0.4in; size: letter portrait; }
   .sheet-inner { padding: 0; max-width: 100%; }
   .sheet-h1 { font-size: 1.2rem; margin-bottom: 2px; }
   .sheet-sub { font-size: 0.7rem; margin-bottom: 8px; }
-
-  /* Compress sections */
   .sec { padding: 5px 8px; margin-bottom: 6px; }
   .sec h3 { font-size: 0.65rem; padding-bottom: 2px; margin-bottom: 5px; }
   .s-row { gap: 6px; margin-bottom: 4px; }
   .sf .v { font-size: 0.78rem; min-height: 16px; }
   .sf label { font-size: 0.55rem; }
-
-  /* Shrink ability scores */
   .ab-row { gap: 5px; margin-bottom: 5px; }
   .ab-cell { padding: 3px 6px; min-width: 44px; }
   .ab-cell .an { font-size: 0.5rem; }
   .ab-cell .as { font-size: 0.95rem; }
   .ab-cell .am { font-size: 0.6rem; }
-
-  /* Shrink skills to two columns, smaller text */
   .sk2 { font-size: 0.65rem; gap: 1px; }
-
-  /* Shrink tags */
   .stag { font-size: 0.65rem; padding: 1px 6px; margin: 1px; }
-
-  /* Shrink general text */
   .sec div, .sec p { font-size: 0.72rem; line-height: 1.3; }
   .sf .v[style*="pre-wrap"] { font-size: 0.7rem; }
-
-  /* Portrait: constrain height so it doesn't push to page 2 */
   #portraitImg { max-height: 180px !important; max-width: 100% !important; }
   #portraitPreview { margin-bottom: 4px !important; }
-
-  /* Layout: put portrait side by side with notes if both exist */
   .sec:last-of-type { page-break-inside: avoid; }
 }
 </style>
@@ -179,7 +168,7 @@ var SUG={
   spells:['Fire Bolt (C)','Prestidigitation (C)','Eldritch Blast (C)','Sacred Flame (C)','Minor Illusion (C)','Mending (C)','Vicious Mockery (C)','Shillelagh (C)','Magic Missile (1)','Cure Wounds (1)','Burning Hands (1)','Thunderwave (1)','Shield (1)','Hex (1)','Bless (1)','Healing Word (1)','Disguise Self (1)','Detect Magic (1)','Misty Step (2)','Scorching Ray (2)','Hold Person (2)','Invisibility (2)','Spiritual Weapon (2)','Fireball (3)','Lightning Bolt (3)','Counterspell (3)','Hypnotic Pattern (3)','Dispel Magic (3)','Greater Invisibility (4)','Banishment (4)','Wall of Fire (4)','Cone of Cold (5)','Hold Monster (5)','Wall of Force (5)','Wish (9)']
 };
 var SKILLS=[{n:'Acrobatics',a:'DEX'},{n:'Animal Handling',a:'WIS'},{n:'Arcana',a:'INT'},{n:'Athletics',a:'STR'},{n:'Deception',a:'CHA'},{n:'History',a:'INT'},{n:'Insight',a:'WIS'},{n:'Intimidation',a:'CHA'},{n:'Investigation',a:'INT'},{n:'Medicine',a:'WIS'},{n:'Nature',a:'INT'},{n:'Perception',a:'WIS'},{n:'Performance',a:'CHA'},{n:'Persuasion',a:'CHA'},{n:'Religion',a:'INT'},{n:'Sleight of Hand',a:'DEX'},{n:'Stealth',a:'DEX'},{n:'Survival',a:'WIS'}];
-var cur=0, pasteListenerAdded=false;
+var cur=0,pasteListenerAdded=false;
 var ch={name:'',player:'',alignment:'Lawful Good',level:1,xp:0,race:'',subrace:'',class_:'',subclass:'',background:'',abilities:{STR:10,DEX:10,CON:10,INT:10,WIS:10,CHA:10},profBonus:2,proficiencies:'',skills:[],traits:'',ideals:'',bonds:'',flaws:'',equipment:[],spells:[],spellAbility:'',spellDC:8,spellAtk:'',spellSlots:'',features:'',cp:0,sp:0,gp:0,ep:0,pp:0,notes:'',abilityNotes:'',portraitSrc:''};
 
 function mval(s){return Math.floor((s-10)/2);}
@@ -192,34 +181,25 @@ function combo(field,listKey,ph){
   var opts=(SUG[listKey]||[]).map(function(o){return '<option value="'+he(o)+'">';}).join('');
   return '<div style="position:relative"><input type="text" list="'+uid+'" value="'+he(ch[field])+'" placeholder="'+(ph||'Choose or type...')+'" oninput="ch[\''+field+'\']=this.value"><span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none;color:#888">&#9660;</span><datalist id="'+uid+'">'+opts+'</datalist></div>';
 }
-
 function chips(field,listKey){
   return '<div class="chips">'+(SUG[listKey]||[]).slice(0,5).map(function(s){
     var safe=s.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
     return '<span class="chip" onclick="appendField(\''+field+'\',\''+safe+'\')">'+he(s.length>38?s.slice(0,38)+'...':s)+'</span>';
   }).join('')+'</div>';
 }
-
 function appendField(field,text){ch[field]=(ch[field]?ch[field]+'\n':'')+text;var el=document.getElementById('ta_'+field);if(el)el.value=ch[field];}
-
 function renderSteps(){var h='';for(var i=0;i<STEPS.length;i++){var c=i===cur?'active':i<cur?'done':'';h+='<div class="step-pill '+c+'" onclick="goTo('+i+')">'+(i<cur?'&#10003; ':'')+STEPS[i]+'</div>';}document.getElementById('stepsBar').innerHTML=h;}
 function goTo(i){cur=i;render();}
 function nav(back){cur=back?Math.max(0,cur-1):Math.min(STEPS.length-1,cur+1);render();}
 function render(){renderSteps();[s0,s1,s2,s3,s4,s5,s6].forEach(function(fn,i){if(i===cur)document.getElementById('stepContent').innerHTML=fn();});}
 function nb(){var b='<button class="btn btn-back" onclick="nav(true)"'+(cur===0?' style="visibility:hidden"':'')+'>&#8592; Back</button>';return '<div class="nav">'+b+'<button style="padding:10px 26px;border-radius:4px;border:none;cursor:pointer;font-family:Georgia,serif;font-size:0.92rem;font-weight:bold;background:var(--red);color:#fff" onclick="nav(false)">Next &#8594;</button></div>';}
 
-function s0(){var h='<h2>Character Identity</h2><div class="g2">';h+='<div class="fg"><label>Character Name</label><input type="text" value="'+he(ch.name)+'" oninput="ch.name=this.value" placeholder="e.g. Thalindra Moonwhisper"></div>';h+='<div class="fg"><label>Player Name</label><input type="text" value="'+he(ch.player)+'" oninput="ch.player=this.value" placeholder="Your name"></div>';h+='<div class="fg"><label>Level (1-20)</label><input type="number" min="1" max="20" value="'+ch.level+'" oninput="ch.level=parseInt(this.value)||1;ch.profBonus=Math.ceil(ch.level/4)+1"></div>';h+='<div class="fg"><label>Experience Points</label><input type="number" min="0" value="'+ch.xp+'" oninput="ch.xp=parseInt(this.value)||0"></div>';h+='<div class="fg"><label>Alignment</label>'+combo('alignment','alignment')+'</div>';return h+'</div>'+nb();}
-
-function s1(){var h='<h2>Race &amp; Class</h2><div class="g2">';h+='<div class="fg"><label>Race</label>'+combo('race','race')+'</div>';h+='<div class="fg"><label>Subrace / Variant</label>'+combo('subrace','subrace','e.g. High Elf')+'</div>';h+='<div class="fg"><label>Class</label>'+combo('class_','class_')+'</div>';h+='<div class="fg"><label>Subclass / Archetype</label>'+combo('subclass','subclass','e.g. School of Evocation')+'</div>';return h+'</div>'+nb();}
-
+function s0(){var h='<h2>Character Identity</h2><div class="g2"><div class="fg"><label>Character Name</label><input type="text" value="'+he(ch.name)+'" oninput="ch.name=this.value" placeholder="e.g. Thalindra Moonwhisper"></div><div class="fg"><label>Player Name</label><input type="text" value="'+he(ch.player)+'" oninput="ch.player=this.value" placeholder="Your name"></div><div class="fg"><label>Level (1-20)</label><input type="number" min="1" max="20" value="'+ch.level+'" oninput="ch.level=parseInt(this.value)||1;ch.profBonus=Math.ceil(ch.level/4)+1"></div><div class="fg"><label>Experience Points</label><input type="number" min="0" value="'+ch.xp+'" oninput="ch.xp=parseInt(this.value)||0"></div><div class="fg"><label>Alignment</label>'+combo('alignment','alignment')+'</div></div>';return h+nb();}
+function s1(){var h='<h2>Race &amp; Class</h2><div class="g2"><div class="fg"><label>Race</label>'+combo('race','race')+'</div><div class="fg"><label>Subrace / Variant</label>'+combo('subrace','subrace','e.g. High Elf')+'</div><div class="fg"><label>Class</label>'+combo('class_','class_')+'</div><div class="fg"><label>Subclass / Archetype</label>'+combo('subclass','subclass','e.g. School of Evocation')+'</div></div>';return h+nb();}
 function s2(){var h='<h2>Ability Scores</h2><button class="roll-btn" onclick="rollAll()">&#127922; Roll 4d6 Drop Lowest</button><div class="ability-grid">';for(var i=0;i<ABS.length;i++){var a=ABS[i];h+='<div class="ab-box"><div class="ab-name">'+a+'</div><input class="ab-score" type="number" min="1" max="30" value="'+ch.abilities[a]+'" oninput="ch.abilities[\''+a+'\']=parseInt(this.value)||1;document.getElementById(\'mod_'+a+'\').textContent=mstr(ch.abilities[\''+a+'\'])"><div class="ab-mod" id="mod_'+a+'">'+mstr(ch.abilities[a])+'</div></div>';}h+='</div><div class="g2" style="margin-top:12px"><div class="fg"><label>Proficiency Bonus</label><input type="number" min="1" max="9" value="'+ch.profBonus+'" oninput="ch.profBonus=parseInt(this.value)||2" style="max-width:80px"></div><div class="fg"><label>Notes</label><textarea oninput="ch.abilityNotes=this.value">'+he(ch.abilityNotes)+'</textarea></div></div>';return h+nb();}
-
 function s3(){var h='<h2>Background &amp; Skills</h2><div class="g2"><div class="fg"><label>Background</label>'+combo('background','background')+'</div><div class="fg"><label>Languages &amp; Proficiencies</label>'+combo('proficiencies','languages','Common, Elvish...')+'</div></div><div class="fg"><label>Skill Proficiencies</label><div class="skills-grid">';for(var i=0;i<SKILLS.length;i++){var sk=SKILLS[i],prof=ch.skills.indexOf(sk.n)>=0,bonus=mval(ch.abilities[sk.a])+(prof?ch.profBonus:0),bs=(bonus>=0?'+':'')+bonus;h+='<div class="sk-row"><input type="checkbox"'+(prof?' checked':'')+' onchange="toggleSkill(\''+sk.n+'\',this.checked)"><span>'+sk.n+'</span><span class="sk-bonus">'+bs+' ('+sk.a+')</span></div>';}h+='</div></div><div class="g2" style="margin-top:12px">';[['traits','Personality Traits','Describe your personality...'],['ideals','Ideals','What do you believe in?'],['bonds','Bonds','What connects you to the world?'],['flaws','Flaws','Your greatest weakness?']].forEach(function(fd){h+='<div class="fg"><label>'+fd[1]+'</label><textarea id="ta_'+fd[0]+'" oninput="ch.'+fd[0]+'=this.value" placeholder="'+fd[2]+'">'+he(ch[fd[0]])+'</textarea>'+chips(fd[0],fd[0])+'</div>';});return h+'</div>'+nb();}
-
 function s4(){var h='<h2>Equipment</h2><div class="tag-row"><input type="text" id="eq_in" list="dl_eq" placeholder="Type or pick, then Add..." onkeydown="if(event.key===\'Enter\')addItem(\'equipment\',\'eq_in\')"><datalist id="dl_eq">'+SUG.equipment.map(function(o){return '<option value="'+he(o)+'">';}).join('')+'</datalist><button class="add-btn" onclick="addItem(\'equipment\',\'eq_in\')">+ Add</button></div><div class="tags" style="margin-bottom:14px">';for(var i=0;i<ch.equipment.length;i++)h+='<div class="tag">'+he(ch.equipment[i])+'<button onclick="removeItem(\'equipment\','+i+')">&#215;</button></div>';h+='</div><div class="g3">';[['cp','CP (Copper)'],['sp','SP (Silver)'],['gp','GP (Gold)'],['ep','EP (Electrum)'],['pp','PP (Platinum)']].forEach(function(c){h+='<div class="fg"><label>'+c[1]+'</label><input type="number" min="0" value="'+ch[c[0]]+'" oninput="ch[\''+c[0]+'\']=parseInt(this.value)||0"></div>';});return h+'</div>'+nb();}
-
 function s5(){var h='<h2>Spells &amp; Abilities</h2><div class="g2" style="margin-bottom:12px"><div class="fg"><label>Spellcasting Ability</label>'+combo('spellAbility','spellAbility','INT / WIS / CHA')+'</div><div class="fg"><label>Spell Save DC</label><input type="number" value="'+ch.spellDC+'" oninput="ch.spellDC=parseInt(this.value)||8"></div><div class="fg"><label>Spell Attack Bonus</label><input type="text" value="'+he(ch.spellAtk)+'" oninput="ch.spellAtk=this.value" placeholder="e.g. +5"></div><div class="fg"><label>Spell Slots (e.g. 4/3/2)</label><input type="text" value="'+he(ch.spellSlots)+'" oninput="ch.spellSlots=this.value" placeholder="Lvl1/Lvl2/Lvl3..."></div></div><div class="fg"><label>Add Spell / Cantrip</label><div class="tag-row"><input type="text" id="sp_in" list="dl_sp" placeholder="Type or pick, then Add..." onkeydown="if(event.key===\'Enter\')addItem(\'spells\',\'sp_in\')"><datalist id="dl_sp">'+SUG.spells.map(function(o){return '<option value="'+he(o)+'">';}).join('')+'</datalist><button class="add-btn" onclick="addItem(\'spells\',\'sp_in\')">+ Add</button></div><div class="tags" style="margin-bottom:12px">';for(var i=0;i<ch.spells.length;i++)h+='<div class="tag">'+he(ch.spells[i])+'<button onclick="removeItem(\'spells\','+i+')">&#215;</button></div>';h+='</div></div><div class="fg"><label>Class Features &amp; Special Abilities</label><textarea oninput="ch.features=this.value" style="min-height:80px" placeholder="e.g. Rage 2/day, Sneak Attack 3d6...">'+he(ch.features)+'</textarea></div>';return h+nb();}
-
 function s6(){var pb=ch.profBonus,hp=8+mval(ch.abilities.CON)+(ch.level-1)*5;var h='<h2>Summary</h2><p style="margin-bottom:14px;color:#555;font-style:italic">Review your character, then choose an option below.</p><div class="s-row"><div class="sf"><label>Name</label><div class="v">'+he(ch.name||'—')+'</div></div><div class="sf"><label>Race</label><div class="v">'+he(ch.race||'—')+(ch.subrace?' ('+he(ch.subrace)+')':'')+'</div></div><div class="sf"><label>Class</label><div class="v">'+he(ch.class_||'—')+(ch.subclass?' - '+he(ch.subclass):'')+'</div></div><div class="sf"><label>Level</label><div class="v">'+ch.level+'</div></div><div class="sf"><label>Background</label><div class="v">'+he(ch.background||'—')+'</div></div><div class="sf"><label>Alignment</label><div class="v">'+he(ch.alignment||'—')+'</div></div></div><div class="ab-row" style="margin:10px 0">';for(var i=0;i<ABS.length;i++){var a=ABS[i];h+='<div class="ab-cell"><div class="an">'+a+'</div><div class="as">'+ch.abilities[a]+'</div><div class="am">'+mstr(ch.abilities[a])+'</div></div>';}h+='</div><div style="font-size:0.88rem;margin-bottom:14px">Prof Bonus: <strong>+'+pb+'</strong> &nbsp;|&nbsp; Est. HP: <strong>'+hp+'</strong> &nbsp;|&nbsp; Initiative: <strong>'+mstr(ch.abilities.DEX)+'</strong></div><div class="fg"><label>Additional Notes</label><textarea oninput="ch.notes=this.value" style="min-height:70px">'+he(ch.notes)+'</textarea></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px"><button onclick="showAiPanel()" style="padding:16px;background:#5a2d82;color:#fff;border:none;border-radius:6px;font-family:Georgia,serif;font-size:0.95rem;font-weight:bold;cursor:pointer">&#10024; Bring to Life</button><button onclick="showSheet()" style="padding:16px;background:#c9a84c;color:#2c1a0e;border:none;border-radius:6px;font-family:Georgia,serif;font-size:0.95rem;font-weight:bold;cursor:pointer">&#128424; Generate Sheet</button></div><div style="margin-top:10px"><button onclick="nav(true)" style="padding:10px 24px;background:#d4c090;color:#2c1a0e;border:none;border-radius:4px;font-family:Georgia,serif;font-size:0.92rem;font-weight:bold;cursor:pointer">&#8592; Back</button></div>';return h;}
 
 function toggleSkill(name,checked){var idx=ch.skills.indexOf(name);if(checked&&idx<0)ch.skills.push(name);else if(!checked&&idx>=0)ch.skills.splice(idx,1);}
@@ -250,7 +230,6 @@ function setupPortraitPaste(){
     }
   });
 }
-
 function pastePortrait(){
   if(navigator.clipboard&&navigator.clipboard.read){
     navigator.clipboard.read().then(function(items){
@@ -260,23 +239,18 @@ function pastePortrait(){
           if(items[i].types[t].indexOf('image')!==-1){
             found=true;
             items[i].getType(items[i].types[t]).then(function(blob){
-              var r=new FileReader();
-              r.onload=function(ev){setPortrait(ev.target.result);};
-              r.readAsDataURL(blob);
+              var r=new FileReader();r.onload=function(ev){setPortrait(ev.target.result);};r.readAsDataURL(blob);
             });
             return;
           }
         }
       }
-      if(!found)alert('No image found in clipboard.\n\nRight-click your generated portrait, choose "Copy Image", then click this button again.');
-    }).catch(function(){
-      alert('Clipboard access denied.\n\nPlease use "Upload Image" instead:\n1. Save your portrait to your computer\n2. Click Upload Image');
-    });
+      if(!found)alert('No image found in clipboard.\n\nRight-click your portrait, choose "Copy Image", then click this button again.');
+    }).catch(function(){alert('Clipboard access denied.\n\nPlease use "Upload Image" instead:\n1. Save your portrait to your computer\n2. Click Upload Image');});
   } else {
-    alert('Browser does not support clipboard read.\n\nPlease use "Upload Image" instead:\n1. Save your portrait to your computer\n2. Click Upload Image');
+    alert('Browser does not support clipboard read.\n\nPlease use "Upload Image" instead.');
   }
 }
-
 function loadPortraitFile(input){
   if(!input||!input.files||!input.files[0])return;
   var reader=new FileReader();
@@ -284,7 +258,6 @@ function loadPortraitFile(input){
   reader.onerror=function(){alert('Could not read image. Please try a different file.');};
   reader.readAsDataURL(input.files[0]);
 }
-
 function setPortrait(src){
   if(!src)return;
   ch.portraitSrc=src;
@@ -297,7 +270,6 @@ function setPortrait(src){
   if(placeholder)placeholder.style.display='none';
   if(status){status.textContent='Image loaded! Click Print to include it on your sheet.';status.style.color='#2a7a2a';}
 }
-
 function clearPortrait(){
   ch.portraitSrc='';
   var img=document.getElementById('portraitImg');
@@ -382,31 +354,16 @@ function generateCharacter(){
   var ep={'Barbarian':['the Unbroken','Ironblood','the Unrelenting','Stormborn'],'Bard':['the Silver-Tongued','Songweaver','the Gilded','of a Thousand Tales'],'Cleric':['the Devoted','the Blessed','Voice of the Unseen','Keeper of the Flame'],'Druid':['of the Wildwood','the Thornwarden','Voice of the Green','the Rootwalker'],'Fighter':['Steelbrow','the Unyielding','Ironclad','the Scarred'],'Monk':['the Still','of the Empty Hand','Dawnfist','the Unmoving'],'Paladin':['the Just','Oathkeeper','the Shining','Shield of the Faithful'],'Ranger':['of the Long Road','Duskwalker','the Unseen','Shadowtread'],'Rogue':['the Ghost','of the Quiet Blade','Nightfall','the Unseen Hand'],'Sorcerer':['the Stormborn','of the Burning Blood','Skycaller','the Unbound'],'Warlock':['the Pact-Bound','of the Veiled Eye','the Marked','Shadowpact'],'Wizard':['the Learned','Arcanist','the Knowing','of the Seventh Circle'],'Artificer':['the Tinkerer','the Ingenious','of the Clockwork Mind','the Forged'],'Blood Hunter':['the Cursed','of the Crimson Rite','the Marked','Bloodsworn']};
   var epithet=pick(ep[cls]||['the Wanderer','of the Lost Road','the Unnamed']);
   var lvlF=lvl>=10?'the marks of long adventuring are written across their face and bearing — this is someone who has seen much and survived it all.':lvl>=5?'they carry themselves with the quiet confidence of someone who has faced real danger and come out the other side.':'there is still a certain freshness to them, tempered already by the first hard lessons of life on the road.';
-
   var pp=[];pp.push(race+' '+cls);pp.push(build);pp.push(hair+', '+eyes);if(ch.subrace)pp.push(ch.subrace+' heritage');if(align.indexOf('Evil')>=0)pp.push('dark and menacing appearance');else if(align.indexOf('Good')>=0)pp.push('noble and heroic appearance');if(ch.equipment.length)pp.push('equipped with '+ch.equipment.slice(0,3).join(', ').toLowerCase());if(ch.spells.length)pp.push('magical aura, arcane energy');pp.push('fantasy RPG character portrait, detailed illustration, dramatic lighting, epic fantasy art style, high quality');
   var imgPrompt=pp.join(', ');
   var bingUrl='https://www.bing.com/images/create?q='+encodeURIComponent(imgPrompt);
   var fireflyUrl='https://firefly.adobe.com/generate/images?prompt='+encodeURIComponent(imgPrompt);
-
-  var profile={
-    epithet:epithet,
-    appearance:name+' is a '+build+' '+race+' with '+hair+' and '+eyes+'. At level '+lvl+', '+lvlF+(ch.equipment.length?' They are typically seen with '+ch.equipment.slice(0,2).join(' and ').toLowerCase()+' close at hand.':''),
-    personality:name+' '+alignDesc+' '+(ch.traits?ch.traits.split('\n')[0]:pick(['They are not one for idle conversation, preferring action to words.','They face the world with a dry pragmatism others sometimes mistake for coldness.','There is a warmth to them that emerges slowly, earned rather than given freely.'])),
-    backstory:name+' '+origin+' The path that led from that life to this one was marked by '+pick(['a defining loss that reshaped everything that followed','a chance encounter that opened a door they could not close again','a choice made in desperation that turned out to be the right one'])+'. Now at level '+lvl+', they are '+(lvl>=10?'a seasoned force shaped by years of hard experience.':lvl>=5?'finding their footing as a genuine power in the world.':'still early in their story, but already changed by what they have seen.'),
-    motivation:motivation,
-    secret:name+' '+pick(secrets),
-    quirk:name+' '+pick(quirks),
-    combat_style:name+' '+combat,
-    hook:pick(hooks),
-    imgPrompt:imgPrompt,bingUrl:bingUrl,fireflyUrl:fireflyUrl
-  };
-  renderAiCharacter(profile);
+  renderAiCharacter({epithet:epithet,appearance:name+' is a '+build+' '+race+' with '+hair+' and '+eyes+'. At level '+lvl+', '+lvlF+(ch.equipment.length?' They are typically seen with '+ch.equipment.slice(0,2).join(' and ').toLowerCase()+' close at hand.':''),personality:name+' '+alignDesc+' '+(ch.traits?ch.traits.split('\n')[0]:pick(['They are not one for idle conversation, preferring action to words.','They face the world with a dry pragmatism others sometimes mistake for coldness.','There is a warmth to them that emerges slowly, earned rather than given freely.'])),backstory:name+' '+origin+' The path that led from that life to this one was marked by '+pick(['a defining loss that reshaped everything that followed','a chance encounter that opened a door they could not close again','a choice made in desperation that turned out to be the right one'])+'. Now at level '+lvl+', they are '+(lvl>=10?'a seasoned force shaped by years of hard experience.':lvl>=5?'finding their footing as a genuine power in the world.':'still early in their story, but already changed by what they have seen.'),motivation:motivation,secret:name+' '+pick(secrets),quirk:name+' '+pick(quirks),combat_style:name+' '+combat,hook:pick(hooks),imgPrompt:imgPrompt,bingUrl:bingUrl,fireflyUrl:fireflyUrl});
 }
 
 function copyPrompt(){
   var box=document.getElementById('imgPromptBox');if(!box)return;
-  var btn=document.getElementById('copyBtn');
-  var text=box.innerText;
+  var btn=document.getElementById('copyBtn');var text=box.innerText;
   if(navigator.clipboard){navigator.clipboard.writeText(text).then(function(){if(btn){btn.textContent='Copied!';setTimeout(function(){btn.textContent='Copy Prompt';},2000);}});}
   else{var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);if(btn){btn.textContent='Copied!';setTimeout(function(){btn.textContent='Copy Prompt';},2000);}}
 }
@@ -421,7 +378,7 @@ function renderAiCharacter(p){
   [['&#128064; Appearance',p.appearance,false],['&#128147; Personality',p.personality,false],['&#128214; Backstory',p.backstory,false],['&#127775; Motivation',p.motivation,true],['&#9876; Combat Style',p.combat_style,true],['&#127927; Quirk',p.quirk,true],['&#128274; Secret',p.secret,true],['&#127988; Adventure Hook',p.hook,true]].forEach(function(c){h+='<div class="ai-card"><h3>'+c[0]+'</h3>'+(c[2]?'<div class="ai-trait">'+he(c[1]||'')+'</div>':'<div>'+he(c[1]||'')+'</div>')+'</div>';});
   if(ch.equipment.length){h+='<div class="ai-card"><h3>&#9876; Equipment</h3>';ch.equipment.forEach(function(e){h+='<span class="stag" style="background:#2a1845;border-color:#7c4dff44;color:#e0d0ff">'+he(e)+'</span>';});h+='</div>';}
   if(ch.spells.length){h+='<div class="ai-card"><h3>&#10024; Spells</h3>';ch.spells.forEach(function(s){h+='<span class="stag" style="background:#1a2845;border-color:#4d7cff44;color:#b3c8ff">'+he(s)+'</span>';});h+='</div>';}
-  h+='<div class="ai-card"><h3>&#127912; Generate Character Portrait</h3><p style="color:#c0a8e0;font-size:0.85rem;margin-bottom:10px">Use this prompt with a free AI image generator, then add the result to your character sheet:</p><div class="prompt-box" id="imgPromptBox">'+he(p.imgPrompt)+'</div><div class="img-btns"><button id="copyBtn" onclick="copyPrompt()" class="img-btn" style="background:#5a2d82">&#128203; Copy Prompt</button><a href="'+p.bingUrl+'" target="_blank" class="img-btn" style="background:#0078d4">&#127912; Open in Bing</a><a href="'+p.fireflyUrl+'" target="_blank" class="img-btn" style="background:#e8420a">&#127794; Open in Firefly</a></div><p style="color:#7c6a9a;font-size:0.75rem">After generating: right-click the image → Copy Image → go to View Sheet → click Paste from Clipboard</p></div>';
+  h+='<div class="ai-card"><h3>&#127912; Generate Character Portrait</h3><p style="color:#c0a8e0;font-size:0.85rem;margin-bottom:10px">Use this prompt with a free AI image generator, then add it to your character sheet:</p><div class="prompt-box" id="imgPromptBox">'+he(p.imgPrompt)+'</div><div class="img-btns"><button id="copyBtn" onclick="copyPrompt()" class="img-btn" style="background:#5a2d82">&#128203; Copy Prompt</button><a href="'+p.bingUrl+'" target="_blank" class="img-btn" style="background:#0078d4">&#127912; Open in Bing</a><a href="'+p.fireflyUrl+'" target="_blank" class="img-btn" style="background:#e8420a">&#127794; Open in Firefly</a></div><p style="color:#7c6a9a;font-size:0.75rem">After generating: right-click the image → Copy Image → go to View Sheet → click Paste from Clipboard</p></div>';
   document.getElementById('aiResult').innerHTML=h;
 }
 
