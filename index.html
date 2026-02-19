@@ -5,104 +5,130 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>D&D Character Creator</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  :root { --parchment:#f4e9d0; --dark:#2c1a0e; --red:#8b1a1a; --gold:#c9a84c; --ink:#1a0f00; }
-  body { background:#1a0f00; font-family:'Georgia',serif; color:var(--ink); }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root { --parchment: #f4e9d0; --dark: #2c1a0e; --red: #8b1a1a; --gold: #c9a84c; --ink: #1a0f00; }
+body { background: #1a0f00; font-family: Georgia, serif; color: var(--ink); }
 
-  #app { max-width:860px; margin:30px auto; padding:0 16px; }
-  .wizard-header { text-align:center; color:var(--gold); margin-bottom:24px; }
-  .wizard-header h1 { font-size:2.2rem; letter-spacing:2px; text-shadow:0 2px 8px #000; }
-  .wizard-header p { color:#c9a84c99; font-style:italic; }
+#app { max-width: 860px; margin: 30px auto; padding: 0 16px; }
+.header { text-align: center; color: var(--gold); margin-bottom: 24px; }
+.header h1 { font-size: 2rem; letter-spacing: 2px; text-shadow: 0 2px 8px #000; }
+.header p { color: #c9a84c88; font-style: italic; }
 
-  .steps-bar { display:flex; justify-content:center; gap:6px; margin-bottom:28px; flex-wrap:wrap; }
-  .step-pill { padding:6px 14px; border-radius:20px; font-size:0.78rem; background:#3a2010; color:#c9a84c88; border:1px solid #c9a84c33; cursor:pointer; transition:all .2s; }
-  .step-pill.active { background:var(--red); color:#fff; border-color:var(--red); }
-  .step-pill.done { background:#2a4020; color:#7bc47f; border-color:#4a8050; }
+.steps-bar { display: flex; justify-content: center; gap: 6px; margin-bottom: 24px; flex-wrap: wrap; }
+.step-pill { padding: 6px 14px; border-radius: 20px; font-size: 0.78rem; background: #3a2010; color: #c9a84c88; border: 1px solid #c9a84c33; cursor: pointer; }
+.step-pill.active { background: var(--red); color: #fff; border-color: var(--red); }
+.step-pill.done { background: #2a4020; color: #7bc47f; border-color: #4a8050; }
 
-  .card { background:var(--parchment); border-radius:8px; padding:28px; box-shadow:0 4px 24px #0008; border:2px solid var(--gold); }
-  .card h2 { color:var(--red); font-size:1.4rem; border-bottom:2px solid var(--gold); padding-bottom:8px; margin-bottom:20px; }
+.card { background: var(--parchment); border-radius: 8px; padding: 28px; box-shadow: 0 4px 24px #0008; border: 2px solid var(--gold); }
+.card h2 { color: var(--red); font-size: 1.3rem; border-bottom: 2px solid var(--gold); padding-bottom: 8px; margin-bottom: 20px; }
 
-  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-  .grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
-  @media(max-width:600px){ .grid2,.grid3{ grid-template-columns:1fr; } }
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+@media(max-width: 600px) { .g2, .g3 { grid-template-columns: 1fr; } }
 
-  label { display:block; font-size:0.85rem; font-weight:bold; color:var(--dark); margin-bottom:4px; }
-  input[type=text], input[type=number], textarea {
-    width:100%; padding:8px 10px; border:1px solid #b09060; border-radius:4px;
-    background:#fffdf5; font-family:Georgia,serif; font-size:0.92rem; color:var(--ink);
-  }
-  textarea { resize:vertical; min-height:70px; }
-  input:focus, textarea:focus { outline:2px solid var(--gold); }
-  .form-group { margin-bottom:14px; }
+.fg { margin-bottom: 14px; }
+label { display: block; font-size: 0.83rem; font-weight: bold; color: var(--dark); margin-bottom: 4px; }
+input[type=text], input[type=number], textarea, select {
+  width: 100%; padding: 8px 10px; border: 1px solid #b09060; border-radius: 4px;
+  background: #fffdf5; font-family: Georgia, serif; font-size: 0.9rem; color: var(--ink);
+}
+textarea { resize: vertical; min-height: 68px; }
+input:focus, textarea:focus, select:focus { outline: 2px solid var(--gold); }
 
-  .combo-wrap { position:relative; }
-  .combo-arrow { position:absolute; right:10px; top:50%; transform:translateY(-50%); pointer-events:none; color:#888; font-size:0.8rem; }
+.ability-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 12px 0; }
+@media(max-width:500px) { .ability-grid { grid-template-columns: repeat(2,1fr); } }
+.ab-box { background: #fff8e8; border: 2px solid var(--gold); border-radius: 8px; padding: 10px; text-align: center; }
+.ab-name { font-size: 0.72rem; font-weight: bold; color: var(--red); letter-spacing: 1px; text-transform: uppercase; }
+.ab-score { width: 58px; font-size: 1.3rem; text-align: center; border: none; border-bottom: 2px solid var(--gold); background: transparent; font-weight: bold; color: var(--ink); }
+.ab-mod { font-size: 0.82rem; color: #555; margin-top: 3px; }
 
-  .ability-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
-  @media(max-width:500px){ .ability-grid{ grid-template-columns:repeat(2,1fr); } }
-  .ability-box { background:#fff8e8; border:2px solid var(--gold); border-radius:8px; padding:12px; text-align:center; }
-  .ability-box .ability-name { font-size:0.75rem; font-weight:bold; color:var(--red); letter-spacing:1px; text-transform:uppercase; }
-  .ability-box input { width:60px; font-size:1.4rem; text-align:center; border:none; border-bottom:2px solid var(--gold); background:transparent; font-weight:bold; }
-  .ability-box .modifier { font-size:0.85rem; color:#555; margin-top:4px; }
-  .roll-btn { margin:12px 0; padding:8px 18px; background:var(--red); color:#fff; border:none; border-radius:4px; cursor:pointer; font-family:Georgia,serif; font-size:0.9rem; }
-  .roll-btn:hover { background:#a02020; }
+.skills-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.sk-row { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; padding: 2px 0; }
+.sk-row input[type=checkbox] { width: 15px; height: 15px; accent-color: var(--red); flex-shrink: 0; }
+.sk-bonus { margin-left: auto; font-size: 0.75rem; color: #777; white-space: nowrap; }
 
-  .skills-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
-  .skill-row { display:flex; align-items:center; gap:8px; font-size:0.88rem; padding:3px 0; }
-  .skill-row input[type=checkbox] { width:16px; height:16px; accent-color:var(--red); }
-  .skill-row .skill-mod { font-size:0.75rem; color:#888; margin-left:auto; min-width:32px; text-align:right; }
+.tag-row { display: flex; gap: 8px; margin-bottom: 8px; }
+.tag-row input { flex: 1; }
+.add-btn { padding: 8px 14px; background: var(--gold); color: var(--dark); border: none; border-radius: 4px; cursor: pointer; font-weight: bold; white-space: nowrap; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; min-height: 30px; }
+.tag { background: #e8d8a0; border: 1px solid var(--gold); border-radius: 14px; padding: 3px 10px; font-size: 0.82rem; display: flex; align-items: center; gap: 5px; }
+.tag button { border: none; background: none; cursor: pointer; color: var(--red); font-size: 1rem; line-height: 1; padding: 0; }
 
-  .list-input { display:flex; gap:8px; margin-bottom:8px; }
-  .list-input > .combo-wrap { flex:1; }
-  .add-btn { padding:8px 14px; background:var(--gold); color:var(--dark); border:none; border-radius:4px; cursor:pointer; font-weight:bold; white-space:nowrap; }
-  .tag-list { display:flex; flex-wrap:wrap; gap:6px; min-height:32px; }
-  .tag { background:#e8d8a0; border:1px solid var(--gold); border-radius:14px; padding:3px 10px; font-size:0.82rem; display:flex; align-items:center; gap:5px; }
-  .tag button { border:none; background:none; cursor:pointer; color:var(--red); font-size:1rem; line-height:1; padding:0; }
+.nav { display: flex; justify-content: space-between; margin-top: 24px; }
+.btn { padding: 10px 26px; border-radius: 4px; border: none; cursor: pointer; font-family: Georgia, serif; font-size: 0.92rem; font-weight: bold; }
+.btn-back { background: #d4c090; color: var(--dark); }
+.btn-next { background: var(--red); color: #fff; }
+.btn-gold { background: var(--gold); color: var(--dark); }
+.btn-purple { background: #5a2d82; color: #fff; }
+.btn:hover { opacity: 0.85; }
+.roll-btn { padding: 8px 16px; background: var(--red); color: #fff; border: none; border-radius: 4px; cursor: pointer; font-family: Georgia, serif; margin-bottom: 12px; }
 
-  .nav-btns { display:flex; justify-content:space-between; margin-top:24px; }
-  .btn { padding:10px 28px; border-radius:4px; border:none; cursor:pointer; font-family:Georgia,serif; font-size:0.95rem; font-weight:bold; }
-  .btn-back { background:#d4c090; color:var(--dark); }
-  .btn-next { background:var(--red); color:#fff; }
-  .btn-print { background:var(--gold); color:var(--dark); }
-  .btn:hover { opacity:0.85; }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.chip { font-size: 0.7rem; padding: 2px 8px; background: #e8d8a0; border: 1px solid var(--gold); border-radius: 10px; cursor: pointer; color: var(--dark); }
+.chip:hover { background: var(--gold); }
 
-  /* ===== PRINT SHEET (hidden until generated) ===== */
-  #sheet { display:none; }
-  .sheet-wrap { background:var(--parchment); max-width:800px; margin:0 auto; padding:32px; font-family:Georgia,serif; }
-  .sheet-title { text-align:center; font-size:2rem; color:var(--red); letter-spacing:3px; margin-bottom:4px; }
-  .sheet-subtitle { text-align:center; color:#888; font-style:italic; margin-bottom:20px; font-size:0.9rem; }
-  .sheet-section { border:1px solid var(--gold); border-radius:6px; padding:14px; margin-bottom:16px; }
-  .sheet-section h3 { color:var(--red); font-size:1rem; letter-spacing:1px; text-transform:uppercase; border-bottom:1px solid var(--gold); margin-bottom:10px; padding-bottom:4px; }
-  .sheet-row { display:flex; flex-wrap:wrap; gap:16px; margin-bottom:8px; }
-  .sheet-field { flex:1; min-width:120px; }
-  .sheet-field label { font-size:0.7rem; text-transform:uppercase; color:#888; }
-  .sheet-field .val { font-size:1rem; border-bottom:1px solid #ccc; min-height:24px; padding-bottom:2px; }
-  .ability-row { display:flex; gap:12px; flex-wrap:wrap; }
-  .ability-cell { text-align:center; border:1px solid var(--gold); border-radius:6px; padding:8px 12px; min-width:70px; }
-  .ability-cell .aname { font-size:0.65rem; color:#888; text-transform:uppercase; }
-  .ability-cell .ascore { font-size:1.6rem; font-weight:bold; color:var(--dark); }
-  .ability-cell .amod { font-size:0.85rem; color:var(--red); }
-  .tag-display { display:flex; flex-wrap:wrap; gap:5px; }
-  .tag-display span { background:#e8d8a0; border:1px solid var(--gold); border-radius:12px; padding:2px 10px; font-size:0.82rem; }
-  .skills-display { display:grid; grid-template-columns:1fr 1fr; gap:3px; font-size:0.88rem; }
-  .skills-display div { padding:2px 0; }
-  .print-actions { text-align:center; margin:20px 0; display:flex; gap:12px; justify-content:center; }
+/* Sheet */
+#sheet { display: none; background: var(--parchment); min-height: 100vh; }
+.sheet-inner { max-width: 800px; margin: 0 auto; padding: 30px; }
+.sheet-h1 { text-align: center; font-size: 1.8rem; color: var(--red); letter-spacing: 3px; margin-bottom: 4px; }
+.sheet-sub { text-align: center; color: #888; font-style: italic; font-size: 0.88rem; margin-bottom: 18px; }
+.sec { border: 1px solid var(--gold); border-radius: 6px; padding: 12px; margin-bottom: 14px; }
+.sec h3 { color: var(--red); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--gold); padding-bottom: 4px; margin-bottom: 10px; }
+.s-row { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 8px; }
+.sf { flex: 1; min-width: 110px; }
+.sf label { font-size: 0.65rem; text-transform: uppercase; color: #888; }
+.sf .v { border-bottom: 1px solid #ccc; min-height: 22px; font-size: 0.95rem; padding-bottom: 2px; }
+.ab-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.ab-cell { text-align: center; border: 1px solid var(--gold); border-radius: 6px; padding: 6px 10px; min-width: 64px; }
+.ab-cell .an { font-size: 0.6rem; color: #888; text-transform: uppercase; }
+.ab-cell .as { font-size: 1.4rem; font-weight: bold; }
+.ab-cell .am { font-size: 0.8rem; color: var(--red); }
+.stag { display: inline-block; background: #e8d8a0; border: 1px solid var(--gold); border-radius: 12px; padding: 2px 9px; font-size: 0.8rem; margin: 2px; }
+.sk2 { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; font-size: 0.85rem; }
+.no-print { display: flex; gap: 10px; justify-content: center; padding: 16px 0; flex-wrap: wrap; }
 
-  @media print {
-    body { background:#fff !important; }
-    #app { display:none !important; }
-    #sheet { display:block !important; }
-    .print-actions { display:none !important; }
-    .sheet-wrap { padding:20px; }
-    * { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-  }
+/* AI Character Panel */
+#aiPanel { display: none; background: #0d0820; min-height: 100vh; }
+.ai-inner { max-width: 800px; margin: 0 auto; padding: 30px; }
+.ai-header { text-align: center; margin-bottom: 24px; }
+.ai-header h1 { color: #b388ff; font-size: 1.8rem; letter-spacing: 2px; text-shadow: 0 0 20px #7c4dff88; }
+.ai-header p { color: #7c6a9a; font-style: italic; font-size: 0.9rem; }
+.ai-card { background: #1a1030; border: 1px solid #5a2d82; border-radius: 10px; padding: 20px; margin-bottom: 16px; box-shadow: 0 0 20px #7c4dff22; }
+.ai-card h3 { color: #b388ff; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #5a2d82; padding-bottom: 6px; margin-bottom: 12px; }
+.ai-card p, .ai-card div { color: #e0d0ff; font-size: 0.92rem; line-height: 1.7; }
+.ai-name { text-align: center; font-size: 2rem; color: #ffd700; font-style: italic; margin-bottom: 6px; text-shadow: 0 0 15px #ffd70066; }
+.ai-class-line { text-align: center; color: #b388ff; font-size: 1rem; margin-bottom: 20px; letter-spacing: 1px; }
+.ai-stat-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+.ai-stat { background: #2a1845; border: 1px solid #7c4dff44; border-radius: 8px; padding: 8px 14px; text-align: center; min-width: 70px; }
+.ai-stat .sn { font-size: 0.65rem; color: #9c7fc0; text-transform: uppercase; }
+.ai-stat .sv { font-size: 1.3rem; font-weight: bold; color: #ffd700; }
+.ai-stat .sm { font-size: 0.8rem; color: #b388ff; }
+.ai-trait { background: #2a1845; border-left: 3px solid #7c4dff; border-radius: 4px; padding: 8px 12px; margin: 6px 0; color: #e0d0ff; font-size: 0.88rem; line-height: 1.6; }
+.loading-wrap { text-align: center; padding: 60px 20px; }
+.loading-wrap p { color: #9c7fc0; font-style: italic; margin-top: 16px; font-size: 0.95rem; }
+.spinner { width: 48px; height: 48px; border: 4px solid #5a2d82; border-top-color: #b388ff; border-radius: 50%; animation: spin 0.9s linear infinite; margin: 0 auto; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.ai-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; padding: 10px 0 20px; }
+.api-key-wrap { background: #1a1030; border: 1px solid #5a2d82; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+.api-key-wrap label { color: #b388ff; }
+.api-key-wrap input { background: #0d0820; border-color: #5a2d82; color: #e0d0ff; }
+.api-key-wrap small { color: #7c6a9a; font-size: 0.78rem; display: block; margin-top: 4px; }
+.err-box { background: #3a1020; border: 1px solid #c0392b; border-radius: 6px; padding: 14px; color: #ff8a80; font-size: 0.9rem; margin-bottom: 16px; }
+
+@media print {
+  #app { display: none !important; }
+  #aiPanel { display: none !important; }
+  #sheet { display: block !important; }
+  .no-print { display: none !important; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
 </style>
 </head>
 <body>
 
 <div id="app">
-  <div class="wizard-header">
-    <h1>⚔ Character Creator ⚔</h1>
+  <div class="header">
+    <h1>&#9876; Character Creator &#9876;</h1>
     <p>Forge your hero's legend</p>
   </div>
   <div class="steps-bar" id="stepsBar"></div>
@@ -110,387 +136,529 @@
 </div>
 
 <div id="sheet">
-  <div class="sheet-wrap" id="sheetContent"></div>
+  <div class="sheet-inner" id="sheetContent"></div>
+</div>
+
+<div id="aiPanel">
+  <div class="ai-inner" id="aiContent"></div>
 </div>
 
 <script>
-const STEPS = ['Identity','Race & Class','Abilities','Background & Skills','Equipment','Spells','Summary'];
-const ABILITIES = ['STR','DEX','CON','INT','WIS','CHA'];
+var STEPS = ['Identity','Race & Class','Abilities','Background & Skills','Equipment','Spells','Summary'];
+var ABS = ['STR','DEX','CON','INT','WIS','CHA'];
 
-const SUGGESTIONS = {
-  race:['Human','Elf','High Elf','Wood Elf','Dark Elf (Drow)','Dwarf','Hill Dwarf','Mountain Dwarf','Halfling','Lightfoot Halfling','Stout Halfling','Gnome','Forest Gnome','Rock Gnome','Half-Elf','Half-Orc','Tiefling','Dragonborn','Aasimar','Goliath','Tabaxi','Kenku','Lizardfolk','Tortle','Firbolg','Genasi (Air)','Genasi (Earth)','Genasi (Fire)','Genasi (Water)','Triton','Yuan-ti Pureblood','Changeling','Kalashtar','Shifter','Warforged'],
-  subrace:['High','Wood','Dark','Duergar','Drow','Ghostwise','Svirfneblin','Scourge','Fallen','Protector','Mark of Shadow','Mark of Storm','Draconblood','Ravenite'],
-  class_:['Barbarian','Bard','Cleric','Druid','Fighter','Monk','Paladin','Ranger','Rogue','Sorcerer','Warlock','Wizard','Artificer','Blood Hunter'],
-  subclass:['Path of the Berserker','Path of the Totem Warrior','College of Lore','College of Valor','Life Domain','Light Domain','War Domain','Trickery Domain','Circle of the Land','Circle of the Moon','Champion','Battle Master','Eldritch Knight','Way of the Open Hand','Way of Shadow','Oath of Devotion','Oath of the Ancients','Oath of Vengeance','Hunter','Beast Master','Thief','Assassin','Arcane Trickster','Draconic Bloodline','Wild Magic','The Fiend','The Great Old One','The Archfey','School of Evocation','School of Abjuration','School of Conjuration','Alchemist','Artillerist','Battle Smith'],
-  background:['Acolyte','Charlatan','Criminal','Spy','Entertainer','Gladiator','Folk Hero','Guild Artisan','Guild Merchant','Hermit','Noble','Knight','Outlander','Sage','Sailor','Pirate','Soldier','Urchin','Far Traveler','Haunted One','Inquisitor','Archaeologist'],
-  alignment:['Lawful Good','Neutral Good','Chaotic Good','Lawful Neutral','True Neutral','Chaotic Neutral','Lawful Evil','Neutral Evil','Chaotic Evil'],
-  languages:['Common','Elvish','Dwarvish','Gnomish','Halfling','Orc','Draconic','Infernal','Abyssal','Celestial','Sylvan','Undercommon','Deep Speech','Primordial','Giant','Goblin','Thieves\' Cant'],
-  spellAbility:['INT','WIS','CHA','STR','DEX','CON'],
-  equipment:['Longsword','Shortsword','Dagger','Handaxe','Greataxe','Rapier','Longbow','Shortbow','Light Crossbow','Quarterstaff','Mace','Warhammer','Greatsword','Shield','Leather Armor','Chain Mail','Plate Armor','Studded Leather','Scale Mail','Explorer\'s Pack','Burglar\'s Pack','Priest\'s Pack','Scholar\'s Pack','Diplomat\'s Pack','Healing Potion','Spell Component Pouch','Arcane Focus','Holy Symbol','Druidic Focus','Thieves\' Tools','Rope (50 ft)','Torch (10)','Rations (5 days)','Bedroll','Backpack'],
-  spells:['Cantrip: Fire Bolt','Cantrip: Prestidigitation','Cantrip: Eldritch Blast','Cantrip: Sacred Flame','Cantrip: Mending','Cantrip: Minor Illusion','Cantrip: Shillelagh','Cantrip: Vicious Mockery','1st: Magic Missile','1st: Cure Wounds','1st: Burning Hands','1st: Thunderwave','1st: Shield','1st: Hex','1st: Bless','1st: Healing Word','1st: Disguise Self','1st: Detect Magic','2nd: Misty Step','2nd: Scorching Ray','2nd: Hold Person','2nd: Invisibility','2nd: Shatter','2nd: Spiritual Weapon','3rd: Fireball','3rd: Lightning Bolt','3rd: Counterspell','3rd: Hypnotic Pattern','3rd: Dispel Magic','4th: Banishment','4th: Greater Invisibility','4th: Wall of Fire','5th: Cone of Cold','5th: Hold Monster','5th: Wall of Force','9th: Wish','9th: True Polymorph'],
-  traits:['I idolize a particular hero and constantly reference their deeds.','I have a joke for every occasion.','I face problems head-on — simple and direct.','I fall in and out of love easily.','I misuse long words to seem more educated.','I know a story relevant to almost every situation.','Nothing can shake my optimistic attitude.','I am always calm, even in dire situations.'],
-  ideals:['Greater Good — helping others is what life is about.','Tradition — respect the old ways.','Freedom — no one should be enslaved.','Power — I hope to be powerful enough to make my own rules.','Aspiration — I will prove my worth to the world.','Live and Let Live — don\'t interfere in others\' lives.'],
-  bonds:['I have a family but have no idea where they are.','I owe my life to a mentor who has since passed.','I\'ll do anything to protect my home village.','I\'m searching for an ancient artifact.','Someone saved my life on the battlefield.','I protect those who cannot protect themselves.'],
-  flaws:['I am inflexible in my thinking.','I secretly believe everyone is beneath me.','I have a weakness for coin.','I am slow to trust members of other races.','Violence is my answer to almost any challenge.','I have difficulty keeping my true feelings hidden.']
+var SUG = {
+  alignment: ['Lawful Good','Neutral Good','Chaotic Good','Lawful Neutral','True Neutral','Chaotic Neutral','Lawful Evil','Neutral Evil','Chaotic Evil'],
+  race: ['Human','High Elf','Wood Elf','Dark Elf','Hill Dwarf','Mountain Dwarf','Lightfoot Halfling','Stout Halfling','Forest Gnome','Rock Gnome','Half-Elf','Half-Orc','Tiefling','Dragonborn','Aasimar','Goliath','Tabaxi','Kenku','Lizardfolk','Tortle','Firbolg','Triton','Warforged','Changeling'],
+  subrace: ['High','Wood','Dark','Duergar','Ghostwise','Svirfneblin','Scourge','Fallen','Protector','Draconblood','Ravenite','Mark of Shadow'],
+  class_: ['Barbarian','Bard','Cleric','Druid','Fighter','Monk','Paladin','Ranger','Rogue','Sorcerer','Warlock','Wizard','Artificer','Blood Hunter'],
+  subclass: ['Path of the Berserker','Path of the Totem Warrior','College of Lore','College of Valor','Life Domain','Light Domain','War Domain','Circle of the Moon','Champion','Battle Master','Eldritch Knight','Way of the Open Hand','Oath of Devotion','Oath of Vengeance','Hunter Conclave','Thief','Assassin','Arcane Trickster','Draconic Bloodline','Wild Magic','The Fiend','The Great Old One','School of Evocation','School of Abjuration','Alchemist','Artillerist'],
+  background: ['Acolyte','Charlatan','Criminal','Spy','Entertainer','Folk Hero','Guild Artisan','Hermit','Noble','Outlander','Sage','Sailor','Soldier','Urchin','Far Traveler','Haunted One'],
+  languages: ['Common','Elvish','Dwarvish','Gnomish','Halfling','Orc','Draconic','Infernal','Abyssal','Celestial','Sylvan','Undercommon','Deep Speech','Primordial','Giant','Goblin'],
+  spellAbility: ['INT','WIS','CHA'],
+  traits: ['I idolize a particular hero and reference their deeds often.','I have a joke for every occasion, even if inappropriate.','I face problems head-on — simple and direct.','Nothing can shake my optimistic attitude.','I am always calm, even in dire situations.','I know a story relevant to almost every situation.'],
+  ideals: ['Greater Good — helping others is what life is about.','Freedom — no one should be enslaved or controlled.','Power — I will be powerful enough to make my own rules.','Tradition — the old ways must be respected and preserved.','Aspiration — I will prove my worth to the world.','Honor — if I dishonor myself I dishonor my whole clan.'],
+  bonds: ['I would lay down my life for the people I serve.','I owe my life to a mentor who has since passed.','I will protect my home village no matter the cost.','Someone saved my life on the battlefield once.','I seek to recover an ancient artifact that was lost.','I protect those who cannot protect themselves.'],
+  flaws: ['I am inflexible in my thinking.','I have difficulty keeping my true feelings hidden.','I have a weakness for gold and fine things.','Violence is my answer to almost any challenge.','I secretly believe everyone is beneath me.','I am slow to trust others — even allies.'],
+  equipment: ['Longsword','Shortsword','Dagger','Handaxe','Greataxe','Rapier','Longbow','Shortbow','Light Crossbow','Quarterstaff','Mace','Warhammer','Greatsword','Shield','Leather Armor','Chain Mail','Plate Armor','Studded Leather','Scale Mail','Explorers Pack','Burglar\'s Pack','Priest\'s Pack','Scholar\'s Pack','Healing Potion','Spell Component Pouch','Arcane Focus','Holy Symbol','Druidic Focus','Thieves Tools','Rope 50ft','Torch x10','Rations x5','Bedroll','Backpack'],
+  spells: ['Fire Bolt (C)','Prestidigitation (C)','Eldritch Blast (C)','Sacred Flame (C)','Minor Illusion (C)','Mending (C)','Vicious Mockery (C)','Shillelagh (C)','Magic Missile (1)','Cure Wounds (1)','Burning Hands (1)','Thunderwave (1)','Shield (1)','Hex (1)','Bless (1)','Healing Word (1)','Disguise Self (1)','Detect Magic (1)','Misty Step (2)','Scorching Ray (2)','Hold Person (2)','Invisibility (2)','Spiritual Weapon (2)','Fireball (3)','Lightning Bolt (3)','Counterspell (3)','Hypnotic Pattern (3)','Dispel Magic (3)','Greater Invisibility (4)','Banishment (4)','Wall of Fire (4)','Cone of Cold (5)','Hold Monster (5)','Wall of Force (5)','Wish (9)']
 };
 
-const SKILLS_LIST = [
-  {name:'Acrobatics',ability:'DEX'},{name:'Animal Handling',ability:'WIS'},
-  {name:'Arcana',ability:'INT'},{name:'Athletics',ability:'STR'},
-  {name:'Deception',ability:'CHA'},{name:'History',ability:'INT'},
-  {name:'Insight',ability:'WIS'},{name:'Intimidation',ability:'CHA'},
-  {name:'Investigation',ability:'INT'},{name:'Medicine',ability:'WIS'},
-  {name:'Nature',ability:'INT'},{name:'Perception',ability:'WIS'},
-  {name:'Performance',ability:'CHA'},{name:'Persuasion',ability:'CHA'},
-  {name:'Religion',ability:'INT'},{name:'Sleight of Hand',ability:'DEX'},
-  {name:'Stealth',ability:'DEX'},{name:'Survival',ability:'WIS'}
+var SKILLS = [
+  {n:'Acrobatics',a:'DEX'},{n:'Animal Handling',a:'WIS'},{n:'Arcana',a:'INT'},
+  {n:'Athletics',a:'STR'},{n:'Deception',a:'CHA'},{n:'History',a:'INT'},
+  {n:'Insight',a:'WIS'},{n:'Intimidation',a:'CHA'},{n:'Investigation',a:'INT'},
+  {n:'Medicine',a:'WIS'},{n:'Nature',a:'INT'},{n:'Perception',a:'WIS'},
+  {n:'Performance',a:'CHA'},{n:'Persuasion',a:'CHA'},{n:'Religion',a:'INT'},
+  {n:'Sleight of Hand',a:'DEX'},{n:'Stealth',a:'DEX'},{n:'Survival',a:'WIS'}
 ];
 
-let cur = 0;
-let ch = {
-  name:'',player:'',alignment:'Lawful Good',level:1,xp:0,
-  race:'',subrace:'',class_:'',subclass:'',background:'',
+var cur = 0;
+var ch = {
+  name:'', player:'', alignment:'Lawful Good', level:1, xp:0,
+  race:'', subrace:'', class_:'', subclass:'', background:'',
   abilities:{STR:10,DEX:10,CON:10,INT:10,WIS:10,CHA:10},
-  profBonus:2,proficiencies:'',
-  skills:[],equipment:[],spells:[],
-  traits:'',ideals:'',bonds:'',flaws:'',
-  spellAbility:'',spellDC:8,spellAtk:'',spellSlots:'',
-  features:'',notes:'',abilityNotes:'',
-  cp:0,sp:0,gp:0,ep:0,pp:0
+  profBonus:2, proficiencies:'', skills:[],
+  traits:'', ideals:'', bonds:'', flaws:'',
+  equipment:[], spells:[],
+  spellAbility:'', spellDC:8, spellAtk:'', spellSlots:'', features:'',
+  cp:0, sp:0, gp:0, ep:0, pp:0, notes:'', abilityNotes:''
 };
 
-function mod(s){ return Math.floor((s-10)/2); }
-function modStr(s){ let m=mod(s); return (m>=0?'+':'')+m; }
-function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+var savedApiKey = '';
 
-function renderSteps(){
-  document.getElementById('stepsBar').innerHTML = STEPS.map((s,i)=>
-    `<div class="step-pill ${i===cur?'active':i<cur?'done':''}" onclick="goTo(${i})">${i<cur?'✓ ':''} ${s}</div>`
-  ).join('');
+function mval(s) { return Math.floor((s - 10) / 2); }
+function mstr(s) { var m = mval(s); return (m >= 0 ? '+' : '') + m; }
+function he(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
-function goTo(i){ cur=i; render(); }
+function comboField(field, listKey, placeholder) {
+  var opts = (SUG[listKey] || []).map(function(o){ return '<option value="' + he(o) + '">'; }).join('');
+  var uid = 'dl_' + field + '_' + listKey;
+  return '<div style="position:relative">' +
+    '<input type="text" list="' + uid + '" value="' + he(ch[field]) + '" placeholder="' + (placeholder||'Choose or type...') + '" oninput="ch[\'' + field + '\']=this.value">' +
+    '<span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none;color:#888;font-size:0.8rem">&#9660;</span>' +
+    '<datalist id="' + uid + '">' + opts + '</datalist>' +
+    '</div>';
+}
 
-function render(){
+function chipRow(field, listKey) {
+  return '<div class="chips">' + (SUG[listKey]||[]).slice(0,5).map(function(s){
+    var safe = s.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    return '<span class="chip" onclick="appendField(\'' + field + '\',\'' + safe + '\')">' + he(s.length > 38 ? s.slice(0,38)+'...' : s) + '</span>';
+  }).join('') + '</div>';
+}
+
+function appendField(field, text) {
+  ch[field] = (ch[field] ? ch[field] + '\n' : '') + text;
+  var el = document.getElementById('ta_' + field);
+  if (el) el.value = ch[field];
+}
+
+function navBtns(last) {
+  var back = '<button class="btn btn-back" onclick="nav(true)"' + (cur===0?' style="visibility:hidden"':'') + '>&#8592; Back</button>';
+  var fwd = last
+    ? '<button class="btn btn-gold" onclick="showSheet()">&#128424; Generate Sheet</button>'
+    : '<button class="btn btn-next" onclick="nav(false)">Next &#8594;</button>';
+  return '<div class="nav">' + back + fwd + '</div>';
+}
+
+function renderSteps() {
+  var html = '';
+  for (var i = 0; i < STEPS.length; i++) {
+    var cls = i === cur ? 'active' : i < cur ? 'done' : '';
+    html += '<div class="step-pill ' + cls + '" onclick="goTo(' + i + ')">' + (i < cur ? '&#10003; ' : '') + STEPS[i] + '</div>';
+  }
+  document.getElementById('stepsBar').innerHTML = html;
+}
+
+function goTo(i) { cur = i; render(); }
+function nav(back) { cur = back ? Math.max(0, cur-1) : Math.min(STEPS.length-1, cur+1); render(); }
+
+function render() {
   renderSteps();
-  document.getElementById('stepContent').innerHTML = stepHTML(cur);
+  var fns = [s0, s1, s2, s3, s4, s5, s6];
+  document.getElementById('stepContent').innerHTML = fns[cur]();
 }
 
-function stepHTML(s){
-  switch(s){
-    case 0: return stepIdentity();
-    case 1: return stepRaceClass();
-    case 2: return stepAbilities();
-    case 3: return stepBackground();
-    case 4: return stepEquipment();
-    case 5: return stepSpells();
-    case 6: return stepSummary();
+function s0() {
+  return '<h2>Character Identity</h2>' +
+  '<div class="g2">' +
+    '<div class="fg"><label>Character Name</label><input type="text" value="' + he(ch.name) + '" oninput="ch.name=this.value" placeholder="e.g. Thalindra Moonwhisper"></div>' +
+    '<div class="fg"><label>Player Name</label><input type="text" value="' + he(ch.player) + '" oninput="ch.player=this.value" placeholder="Your name"></div>' +
+    '<div class="fg"><label>Level (1-20)</label><input type="number" min="1" max="20" value="' + ch.level + '" oninput="ch.level=parseInt(this.value)||1;ch.profBonus=Math.ceil(ch.level/4)+1"></div>' +
+    '<div class="fg"><label>Experience Points</label><input type="number" min="0" value="' + ch.xp + '" oninput="ch.xp=parseInt(this.value)||0"></div>' +
+    '<div class="fg"><label>Alignment</label>' + comboField('alignment','alignment') + '</div>' +
+  '</div>' + navBtns(false);
+}
+
+function s1() {
+  return '<h2>Race &amp; Class</h2>' +
+  '<div class="g2">' +
+    '<div class="fg"><label>Race</label>' + comboField('race','race') + '</div>' +
+    '<div class="fg"><label>Subrace / Variant</label>' + comboField('subrace','subrace','e.g. High Elf') + '</div>' +
+    '<div class="fg"><label>Class</label>' + comboField('class_','class_') + '</div>' +
+    '<div class="fg"><label>Subclass / Archetype</label>' + comboField('subclass','subclass','e.g. School of Evocation') + '</div>' +
+  '</div>' + navBtns(false);
+}
+
+function s2() {
+  var boxes = '';
+  for (var i = 0; i < ABS.length; i++) {
+    var a = ABS[i];
+    boxes += '<div class="ab-box">' +
+      '<div class="ab-name">' + a + '</div>' +
+      '<input class="ab-score" type="number" min="1" max="30" value="' + ch.abilities[a] + '" id="ab_' + a + '" oninput="ch.abilities[\'' + a + '\']=parseInt(this.value)||1;document.getElementById(\'mod_' + a + '\').textContent=mstr(ch.abilities[\'' + a + '\'])">' +
+      '<div class="ab-mod" id="mod_' + a + '">' + mstr(ch.abilities[a]) + '</div>' +
+    '</div>';
   }
+  return '<h2>Ability Scores</h2>' +
+  '<button class="roll-btn" onclick="rollAll()">&#127922; Roll 4d6 Drop Lowest</button>' +
+  '<div class="ability-grid">' + boxes + '</div>' +
+  '<div class="g2" style="margin-top:12px">' +
+    '<div class="fg"><label>Proficiency Bonus</label><input type="number" min="1" max="9" value="' + ch.profBonus + '" oninput="ch.profBonus=parseInt(this.value)||2" style="max-width:80px"></div>' +
+    '<div class="fg"><label>Bonus Notes</label><textarea oninput="ch.abilityNotes=this.value">' + he(ch.abilityNotes) + '</textarea></div>' +
+  '</div>' + navBtns(false);
 }
 
-function nav(back=false){
-  cur = back ? Math.max(0,cur-1) : Math.min(STEPS.length-1,cur+1);
-  render();
-}
-
-function navBtns(isLast=false){
-  return `<div class="nav-btns">
-    <button class="btn btn-back" onclick="nav(true)" ${cur===0?'style="visibility:hidden"':''}>← Back</button>
-    ${isLast
-      ? `<button class="btn btn-print" onclick="showSheet()">🖨 Generate &amp; Print</button>`
-      : `<button class="btn btn-next" onclick="nav(false)">Next →</button>`}
-  </div>`;
-}
-
-function dl(id, field, placeholder=''){
-  return `<div class="combo-wrap">
-    <input type="text" list="${id}" value="${esc(ch[field])}" placeholder="${placeholder}" oninput="ch['${field}']=this.value">
-    <span class="combo-arrow">▾</span>
-    <datalist id="${id}">${(SUGGESTIONS[field]||[]).map(o=>`<option value="${esc(o)}">`).join('')}</datalist>
-  </div>`;
-}
-
-function stepIdentity(){
-  return `<h2>Character Identity</h2>
-  <div class="grid2">
-    <div class="form-group"><label>Character Name</label><input type="text" value="${esc(ch.name)}" oninput="ch.name=this.value" placeholder="Thalindra Moonwhisper"></div>
-    <div class="form-group"><label>Player Name</label><input type="text" value="${esc(ch.player)}" oninput="ch.player=this.value" placeholder="Your name"></div>
-    <div class="form-group"><label>Level</label><input type="number" min="1" max="20" value="${ch.level}" oninput="ch.level=+this.value;ch.profBonus=Math.ceil(ch.level/4)+1"></div>
-    <div class="form-group"><label>Experience Points</label><input type="number" min="0" value="${ch.xp}" oninput="ch.xp=+this.value"></div>
-    <div class="form-group"><label>Alignment</label>${dl('dl_alignment','alignment','Choose or type...')}</div>
-  </div>
-  ${navBtns()}`;
-}
-
-function stepRaceClass(){
-  return `<h2>Race & Class</h2>
-  <div class="grid2">
-    <div class="form-group"><label>Race</label>${dl('dl_race','race','Choose or type...')}</div>
-    <div class="form-group"><label>Subrace / Variant</label>${dl('dl_subrace','subrace','e.g. High Elf')}</div>
-    <div class="form-group"><label>Class</label>${dl('dl_class_','class_','Choose or type...')}</div>
-    <div class="form-group"><label>Subclass / Archetype</label>${dl('dl_subclass','subclass','e.g. School of Evocation')}</div>
-  </div>
-  ${navBtns()}`;
-}
-
-function stepAbilities(){
-  const boxes = ABILITIES.map(a=>`
-    <div class="ability-box">
-      <div class="ability-name">${a}</div>
-      <input type="number" min="1" max="30" value="${ch.abilities[a]}"
-        oninput="ch.abilities['${a}']=+this.value;document.getElementById('mod_${a}').textContent=modStr(ch.abilities['${a}'])">
-      <div class="modifier" id="mod_${a}">${modStr(ch.abilities[a])}</div>
-    </div>`).join('');
-  return `<h2>Ability Scores</h2>
-  <button class="roll-btn" onclick="rollAll()">🎲 Roll 4d6 Drop Lowest (All)</button>
-  <div class="ability-grid">${boxes}</div>
-  <div style="margin-top:14px">
-    <div class="form-group"><label>Proficiency Bonus</label><input type="number" value="${ch.profBonus}" oninput="ch.profBonus=+this.value" style="max-width:80px"></div>
-    <div class="form-group"><label>Notes</label><textarea oninput="ch.abilityNotes=this.value">${esc(ch.abilityNotes)}</textarea></div>
-  </div>
-  ${navBtns()}`;
-}
-
-function stepBackground(){
-  const skillRows = SKILLS_LIST.map(sk=>{
-    const prof = ch.skills.includes(sk.name);
-    const bonus = mod(ch.abilities[sk.ability]) + (prof?ch.profBonus:0);
-    return `<div class="skill-row">
-      <input type="checkbox" ${prof?'checked':''} onchange="toggleSkill('${sk.name}',this.checked)">
-      <span>${sk.name}</span>
-      <span class="skill-mod">${modStr(bonus)} <small style="color:#aaa">(${sk.ability})</small></span>
-    </div>`;
-  }).join('');
-
-  function taWithSuggestions(field, listKey, placeholder){
-    const chips = (SUGGESTIONS[listKey]||[]).slice(0,4).map(s=>
-      `<button type="button" onclick="appendTA('${field}','${s.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')" style="font-size:0.72rem;padding:2px 7px;background:#e8d8a0;border:1px solid #c9a84c;border-radius:10px;cursor:pointer;color:#2c1a0e;margin-top:3px">${s.length>42?s.substring(0,42)+'…':s}</button>`
-    ).join(' ');
-    return `<textarea id="ta_${field}" oninput="ch.${field}=this.value" placeholder="${placeholder}">${esc(ch[field])}</textarea>
-    <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:3px">${chips}</div>`;
+function s3() {
+  var rows = '';
+  for (var i = 0; i < SKILLS.length; i++) {
+    var sk = SKILLS[i];
+    var prof = ch.skills.indexOf(sk.n) >= 0;
+    var bonus = mval(ch.abilities[sk.a]) + (prof ? ch.profBonus : 0);
+    var bs = (bonus >= 0 ? '+' : '') + bonus;
+    rows += '<div class="sk-row">' +
+      '<input type="checkbox"' + (prof ? ' checked' : '') + ' onchange="toggleSkill(\'' + sk.n + '\',this.checked)">' +
+      '<span>' + sk.n + '</span>' +
+      '<span class="sk-bonus">' + bs + ' (' + sk.a + ')</span>' +
+    '</div>';
   }
-
-  return `<h2>Background & Skills</h2>
-  <div class="grid2">
-    <div class="form-group"><label>Background</label>${dl('dl_bg','background','Choose or type...')}</div>
-    <div class="form-group"><label>Languages / Proficiencies</label>${dl('dl_lang','languages','Common, Elvish...')}</div>
-  </div>
-  <div class="form-group"><label>Skill Proficiencies (● = proficient)</label>
-    <div class="skills-grid">${skillRows}</div>
-  </div>
-  <div class="grid2" style="margin-top:12px">
-    <div class="form-group"><label>Personality Traits</label>${taWithSuggestions('traits','traits','Describe your personality...')}</div>
-    <div class="form-group"><label>Ideals</label>${taWithSuggestions('ideals','ideals','What do you believe in?')}</div>
-    <div class="form-group"><label>Bonds</label>${taWithSuggestions('bonds','bonds','What connects you to the world?')}</div>
-    <div class="form-group"><label>Flaws</label>${taWithSuggestions('flaws','flaws','What is your greatest weakness?')}</div>
-  </div>
-  ${navBtns()}`;
+  function taBlock(field, listKey, ph) {
+    return '<textarea id="ta_' + field + '" oninput="ch.' + field + '=this.value" placeholder="' + ph + '">' + he(ch[field]) + '</textarea>' + chipRow(field, listKey);
+  }
+  return '<h2>Background &amp; Skills</h2>' +
+  '<div class="g2">' +
+    '<div class="fg"><label>Background</label>' + comboField('background','background') + '</div>' +
+    '<div class="fg"><label>Languages &amp; Proficiencies</label>' + comboField('proficiencies','languages','Common, Elvish...') + '</div>' +
+  '</div>' +
+  '<div class="fg"><label>Skill Proficiencies</label><div class="skills-grid">' + rows + '</div></div>' +
+  '<div class="g2" style="margin-top:12px">' +
+    '<div class="fg"><label>Personality Traits</label>' + taBlock('traits','traits','Describe your personality...') + '</div>' +
+    '<div class="fg"><label>Ideals</label>' + taBlock('ideals','ideals','What do you believe in?') + '</div>' +
+    '<div class="fg"><label>Bonds</label>' + taBlock('bonds','bonds','What connects you to the world?') + '</div>' +
+    '<div class="fg"><label>Flaws</label>' + taBlock('flaws','flaws','Your greatest weakness?') + '</div>' +
+  '</div>' + navBtns(false);
 }
 
-function appendTA(field, text){
-  ch[field] = (ch[field] ? ch[field]+'\n' : '') + text;
-  const el = document.getElementById('ta_'+field);
-  if(el) el.value = ch[field];
+function s4() {
+  var tags = '';
+  for (var i = 0; i < ch.equipment.length; i++) {
+    tags += '<div class="tag">' + he(ch.equipment[i]) + '<button onclick="removeItem(\'equipment\',' + i + ')">&#215;</button></div>';
+  }
+  var eqOpts = (SUG.equipment||[]).map(function(o){ return '<option value="' + he(o) + '">'; }).join('');
+  return '<h2>Equipment</h2>' +
+  '<div class="tag-row">' +
+    '<input type="text" id="eq_in" list="dl_eq" placeholder="Type or pick from list, then Add..." onkeydown="if(event.key===\'Enter\')addItem(\'equipment\',\'eq_in\')">' +
+    '<datalist id="dl_eq">' + eqOpts + '</datalist>' +
+    '<button class="add-btn" onclick="addItem(\'equipment\',\'eq_in\')">+ Add</button>' +
+  '</div>' +
+  '<div class="tags" style="margin-bottom:14px">' + tags + '</div>' +
+  '<div class="g3">' +
+    '<div class="fg"><label>CP (Copper)</label><input type="number" min="0" value="' + ch.cp + '" oninput="ch.cp=parseInt(this.value)||0"></div>' +
+    '<div class="fg"><label>SP (Silver)</label><input type="number" min="0" value="' + ch.sp + '" oninput="ch.sp=parseInt(this.value)||0"></div>' +
+    '<div class="fg"><label>GP (Gold)</label><input type="number" min="0" value="' + ch.gp + '" oninput="ch.gp=parseInt(this.value)||0"></div>' +
+    '<div class="fg"><label>EP (Electrum)</label><input type="number" min="0" value="' + ch.ep + '" oninput="ch.ep=parseInt(this.value)||0"></div>' +
+    '<div class="fg"><label>PP (Platinum)</label><input type="number" min="0" value="' + ch.pp + '" oninput="ch.pp=parseInt(this.value)||0"></div>' +
+  '</div>' + navBtns(false);
 }
 
-function stepEquipment(){
-  const tags = ch.equipment.map((e,i)=>`<div class="tag">${esc(e)}<button onclick="removeItem('equipment',${i})">×</button></div>`).join('');
-  return `<h2>Equipment</h2>
-  <div class="list-input">
-    <div class="combo-wrap" style="flex:1">
-      <input type="text" id="eq_input" list="dl_eq" placeholder="e.g. Longsword, Healing Potion..." onkeydown="if(event.key==='Enter')addItem('equipment','eq_input')">
-      <span class="combo-arrow">▾</span>
-      <datalist id="dl_eq">${SUGGESTIONS.equipment.map(o=>`<option value="${esc(o)}">`).join('')}</datalist>
-    </div>
-    <button class="add-btn" onclick="addItem('equipment','eq_input')">+ Add</button>
-  </div>
-  <div class="tag-list" style="margin-bottom:16px">${tags}</div>
-  <div class="grid3">
-    <div class="form-group"><label>CP (Copper)</label><input type="number" min="0" value="${ch.cp}" oninput="ch.cp=+this.value"></div>
-    <div class="form-group"><label>SP (Silver)</label><input type="number" min="0" value="${ch.sp}" oninput="ch.sp=+this.value"></div>
-    <div class="form-group"><label>GP (Gold)</label><input type="number" min="0" value="${ch.gp}" oninput="ch.gp=+this.value"></div>
-    <div class="form-group"><label>EP (Electrum)</label><input type="number" min="0" value="${ch.ep}" oninput="ch.ep=+this.value"></div>
-    <div class="form-group"><label>PP (Platinum)</label><input type="number" min="0" value="${ch.pp}" oninput="ch.pp=+this.value"></div>
-  </div>
-  ${navBtns()}`;
+function s5() {
+  var tags = '';
+  for (var i = 0; i < ch.spells.length; i++) {
+    tags += '<div class="tag">' + he(ch.spells[i]) + '<button onclick="removeItem(\'spells\',' + i + ')">&#215;</button></div>';
+  }
+  var spOpts = (SUG.spells||[]).map(function(o){ return '<option value="' + he(o) + '">'; }).join('');
+  return '<h2>Spells &amp; Abilities</h2>' +
+  '<div class="g2" style="margin-bottom:12px">' +
+    '<div class="fg"><label>Spellcasting Ability</label>' + comboField('spellAbility','spellAbility','INT / WIS / CHA') + '</div>' +
+    '<div class="fg"><label>Spell Save DC</label><input type="number" value="' + ch.spellDC + '" oninput="ch.spellDC=parseInt(this.value)||8"></div>' +
+    '<div class="fg"><label>Spell Attack Bonus</label><input type="text" value="' + he(ch.spellAtk) + '" oninput="ch.spellAtk=this.value" placeholder="e.g. +5"></div>' +
+    '<div class="fg"><label>Spell Slots (e.g. 4/3/2)</label><input type="text" value="' + he(ch.spellSlots) + '" oninput="ch.spellSlots=this.value" placeholder="Lvl1/Lvl2/Lvl3..."></div>' +
+  '</div>' +
+  '<div class="fg"><label>Add Spell / Cantrip</label>' +
+  '<div class="tag-row">' +
+    '<input type="text" id="sp_in" list="dl_sp" placeholder="Type or pick from list, then Add..." onkeydown="if(event.key===\'Enter\')addItem(\'spells\',\'sp_in\')">' +
+    '<datalist id="dl_sp">' + spOpts + '</datalist>' +
+    '<button class="add-btn" onclick="addItem(\'spells\',\'sp_in\')">+ Add</button>' +
+  '</div>' +
+  '<div class="tags" style="margin-bottom:12px">' + tags + '</div></div>' +
+  '<div class="fg"><label>Class Features &amp; Special Abilities</label>' +
+    '<textarea oninput="ch.features=this.value" style="min-height:80px" placeholder="e.g. Rage 2/day, Sneak Attack 3d6...">' + he(ch.features) + '</textarea>' +
+  '</div>' + navBtns(false);
 }
 
-function stepSpells(){
-  const tags = ch.spells.map((e,i)=>`<div class="tag">${esc(e)}<button onclick="removeItem('spells',${i})">×</button></div>`).join('');
-  return `<h2>Spells & Abilities</h2>
-  <div class="grid2" style="margin-bottom:14px">
-    <div class="form-group"><label>Spellcasting Ability</label>${dl('dl_sab','spellAbility','INT / WIS / CHA')}</div>
-    <div class="form-group"><label>Spell Save DC</label><input type="number" value="${ch.spellDC}" oninput="ch.spellDC=+this.value"></div>
-    <div class="form-group"><label>Spell Attack Bonus</label><input type="text" value="${esc(ch.spellAtk)}" oninput="ch.spellAtk=this.value" placeholder="e.g. +5"></div>
-    <div class="form-group"><label>Slots (e.g. 4/3/2/1)</label><input type="text" value="${esc(ch.spellSlots)}" oninput="ch.spellSlots=this.value" placeholder="Lvl1/Lvl2/Lvl3..."></div>
-  </div>
-  <label>Spells Known / Prepared</label>
-  <div class="list-input" style="margin-top:6px">
-    <div class="combo-wrap" style="flex:1">
-      <input type="text" id="sp_input" list="dl_sp" placeholder="e.g. Fireball (3rd), Eldritch Blast..." onkeydown="if(event.key==='Enter')addItem('spells','sp_input')">
-      <span class="combo-arrow">▾</span>
-      <datalist id="dl_sp">${SUGGESTIONS.spells.map(o=>`<option value="${esc(o)}">`).join('')}</datalist>
-    </div>
-    <button class="add-btn" onclick="addItem('spells','sp_input')">+ Add</button>
-  </div>
-  <div class="tag-list" style="margin-bottom:14px">${tags}</div>
-  <div class="form-group"><label>Special Abilities / Class Features</label>
-    <textarea oninput="ch.features=this.value" style="min-height:90px" placeholder="e.g. Rage (2/day), Sneak Attack (3d6)...">${esc(ch.features)}</textarea>
-  </div>
-  ${navBtns()}`;
-}
-
-function stepSummary(){
-  const pb = ch.profBonus;
-  const hp = 8 + mod(ch.abilities.CON) + (ch.level-1)*5;
-  return `<h2>Summary</h2>
-  <p style="margin-bottom:16px;color:#555;font-style:italic">Review your character, then click <strong>Generate &amp; Print</strong> to open a print-ready sheet.</p>
-  <div class="sheet-row">
-    <div class="sheet-field"><label>Name</label><div class="val">${esc(ch.name)||'—'}</div></div>
-    <div class="sheet-field"><label>Race</label><div class="val">${esc(ch.race)||'—'}${ch.subrace?' ('+esc(ch.subrace)+')':''}</div></div>
-    <div class="sheet-field"><label>Class</label><div class="val">${esc(ch.class_)||'—'}${ch.subclass?' - '+esc(ch.subclass):''}</div></div>
-    <div class="sheet-field"><label>Level</label><div class="val">${ch.level}</div></div>
-    <div class="sheet-field"><label>Background</label><div class="val">${esc(ch.background)||'—'}</div></div>
-    <div class="sheet-field"><label>Alignment</label><div class="val">${esc(ch.alignment)||'—'}</div></div>
-  </div>
-  <div class="ability-row" style="margin:12px 0">
-    ${ABILITIES.map(a=>`<div class="ability-cell"><div class="aname">${a}</div><div class="ascore">${ch.abilities[a]}</div><div class="amod">${modStr(ch.abilities[a])}</div></div>`).join('')}
-  </div>
-  <div style="font-size:0.9rem;margin:8px 0">
-    Prof Bonus: <strong>+${pb}</strong> &nbsp;|&nbsp; Est. HP: <strong>${hp}</strong> &nbsp;|&nbsp; Initiative: <strong>${modStr(ch.abilities.DEX)}</strong>
-  </div>
-  <div class="form-group" style="margin-top:12px"><label>Additional Notes</label>
-    <textarea oninput="ch.notes=this.value" style="min-height:80px">${esc(ch.notes)}</textarea>
-  </div>
-  ${navBtns(true)}`;
-}
-
-function toggleSkill(name, checked){
-  if(checked){ if(!ch.skills.includes(name)) ch.skills.push(name); }
-  else { ch.skills = ch.skills.filter(s=>s!==name); }
-}
-
-function addItem(type, inputId){
-  const inp = document.getElementById(inputId);
-  if(!inp || !inp.value.trim()) return;
-  ch[type].push(inp.value.trim());
-  inp.value='';
-  render();
-}
-
-function removeItem(type, i){
-  ch[type].splice(i,1);
-  render();
-}
-
-function rollAll(){
-  ABILITIES.forEach(a=>{
-    const rolls = [0,1,2,3].map(()=>Math.ceil(Math.random()*6));
-    rolls.sort((x,y)=>x-y);
-    ch.abilities[a] = rolls.slice(1).reduce((s,n)=>s+n,0);
-  });
-  render();
-}
-
-function showSheet(){
-  const pb = ch.profBonus;
-  const estHP = 8 + mod(ch.abilities.CON) + (ch.level-1)*5;
-
-  const skillsHTML = SKILLS_LIST.map(sk=>{
-    const prof = ch.skills.includes(sk.name);
-    const bonus = mod(ch.abilities[sk.ability]) + (prof?pb:0);
-    return `<div><span style="color:${prof?'#8b1a1a':'#ccc'};margin-right:4px">${prof?'●':'○'}</span>${sk.name} <small style="color:#888">(${sk.ability})</small>: <strong>${modStr(bonus)}</strong></div>`;
+function s6() {
+  var pb = ch.profBonus;
+  var hp = 8 + mval(ch.abilities.CON) + (ch.level - 1) * 5;
+  var abCells = ABS.map(function(a){
+    return '<div class="ab-cell"><div class="an">' + a + '</div><div class="as">' + ch.abilities[a] + '</div><div class="am">' + mstr(ch.abilities[a]) + '</div></div>';
   }).join('');
+  return '<h2>Summary</h2>' +
+  '<p style="margin-bottom:14px;color:#555;font-style:italic">Review your character, then generate your sheet or bring your character to life with AI.</p>' +
+  '<div class="s-row">' +
+    '<div class="sf"><label>Name</label><div class="v">' + he(ch.name||'—') + '</div></div>' +
+    '<div class="sf"><label>Race</label><div class="v">' + he(ch.race||'—') + (ch.subrace?' ('+he(ch.subrace)+')':'') + '</div></div>' +
+    '<div class="sf"><label>Class</label><div class="v">' + he(ch.class_||'—') + (ch.subclass?' - '+he(ch.subclass):'') + '</div></div>' +
+    '<div class="sf"><label>Level</label><div class="v">' + ch.level + '</div></div>' +
+    '<div class="sf"><label>Background</label><div class="v">' + he(ch.background||'—') + '</div></div>' +
+    '<div class="sf"><label>Alignment</label><div class="v">' + he(ch.alignment||'—') + '</div></div>' +
+  '</div>' +
+  '<div class="ab-row" style="margin:10px 0">' + abCells + '</div>' +
+  '<div style="font-size:0.88rem;margin-bottom:14px">Prof Bonus: <strong>+' + pb + '</strong> &nbsp;|&nbsp; Est. HP: <strong>' + hp + '</strong> &nbsp;|&nbsp; Initiative: <strong>' + mstr(ch.abilities.DEX) + '</strong></div>' +
+  '<div class="fg"><label>Additional Notes</label><textarea oninput="ch.notes=this.value" style="min-height:70px">' + he(ch.notes) + '</textarea></div>' +
+  '<div class="nav">' +
+    '<button class="btn btn-back" onclick="nav(true)">&#8592; Back</button>' +
+    '<div style="display:flex;gap:10px;flex-wrap:wrap">' +
+      '<button class="btn btn-purple" onclick="showAiPanel()">&#10024; Bring to Life with AI</button>' +
+      '<button class="btn btn-gold" onclick="showSheet()">&#128424; Generate Sheet</button>' +
+    '</div>' +
+  '</div>';
+}
 
-  const currency = [['CP',ch.cp],['SP',ch.sp],['GP',ch.gp],['EP',ch.ep],['PP',ch.pp]]
-    .filter(c=>c[1]>0).map(c=>`${c[0]}: ${c[1]}`).join(' &nbsp; ');
+function toggleSkill(name, checked) {
+  var idx = ch.skills.indexOf(name);
+  if (checked && idx < 0) ch.skills.push(name);
+  else if (!checked && idx >= 0) ch.skills.splice(idx, 1);
+}
 
-  document.getElementById('sheetContent').innerHTML = `
-    <div class="print-actions">
-      <button class="btn btn-print" onclick="window.print()">🖨 Print</button>
-      <button class="btn btn-back" onclick="backToBuilder()">← Back to Builder</button>
-    </div>
-    <div class="sheet-title">⚔ Character Sheet ⚔</div>
-    <div class="sheet-subtitle">Created with D&amp;D Character Creator</div>
+function addItem(type, inputId) {
+  var el = document.getElementById(inputId);
+  if (!el || !el.value.trim()) return;
+  ch[type].push(el.value.trim());
+  el.value = '';
+  render();
+}
 
-    <div class="sheet-section">
-      <h3>Identity</h3>
-      <div class="sheet-row">
-        <div class="sheet-field"><label>Character Name</label><div class="val">${esc(ch.name)||'—'}</div></div>
-        <div class="sheet-field"><label>Player</label><div class="val">${esc(ch.player)||'—'}</div></div>
-        <div class="sheet-field"><label>Race</label><div class="val">${esc(ch.race)||'—'}${ch.subrace?' ('+esc(ch.subrace)+')':''}</div></div>
-      </div>
-      <div class="sheet-row">
-        <div class="sheet-field"><label>Class</label><div class="val">${esc(ch.class_)||'—'}${ch.subclass?' – '+esc(ch.subclass):''}</div></div>
-        <div class="sheet-field"><label>Level</label><div class="val">${ch.level}</div></div>
-        <div class="sheet-field"><label>XP</label><div class="val">${ch.xp}</div></div>
-        <div class="sheet-field"><label>Background</label><div class="val">${esc(ch.background)||'—'}</div></div>
-        <div class="sheet-field"><label>Alignment</label><div class="val">${esc(ch.alignment)||'—'}</div></div>
-      </div>
-    </div>
+function removeItem(type, i) {
+  ch[type].splice(i, 1);
+  render();
+}
 
-    <div class="sheet-section">
-      <h3>Ability Scores</h3>
-      <div class="ability-row">
-        ${ABILITIES.map(a=>`<div class="ability-cell"><div class="aname">${a}</div><div class="ascore">${ch.abilities[a]}</div><div class="amod">${modStr(ch.abilities[a])}</div></div>`).join('')}
-      </div>
-      <div style="margin-top:10px;font-size:0.9rem;display:flex;gap:20px;flex-wrap:wrap">
-        <span>Proficiency Bonus: <strong>+${pb}</strong></span>
-        <span>Initiative: <strong>${modStr(ch.abilities.DEX)}</strong></span>
-        <span>Passive Perception: <strong>${10+mod(ch.abilities.WIS)+(ch.skills.includes('Perception')?pb:0)}</strong></span>
-        <span>Est. HP: <strong>${estHP}</strong></span>
-      </div>
-      ${ch.abilityNotes?`<div style="font-size:0.85rem;margin-top:8px;color:#555">${esc(ch.abilityNotes)}</div>`:''}
-    </div>
+function rollAll() {
+  for (var i = 0; i < ABS.length; i++) {
+    var rolls = [Math.ceil(Math.random()*6),Math.ceil(Math.random()*6),Math.ceil(Math.random()*6),Math.ceil(Math.random()*6)];
+    rolls.sort(function(a,b){return a-b;});
+    ch.abilities[ABS[i]] = rolls[1]+rolls[2]+rolls[3];
+  }
+  render();
+}
 
-    <div class="sheet-section">
-      <h3>Skills</h3>
-      <div class="skills-display">${skillsHTML}</div>
-      ${ch.proficiencies?`<div style="margin-top:8px;font-size:0.85rem"><strong>Languages / Proficiencies:</strong> ${esc(ch.proficiencies)}</div>`:''}
-    </div>
+/* ===== SHEET ===== */
+function showSheet() {
+  var pb = ch.profBonus;
+  var estHP = 8 + mval(ch.abilities.CON) + (ch.level - 1) * 5;
+  var abCells = ABS.map(function(a){
+    return '<div class="ab-cell"><div class="an">' + a + '</div><div class="as">' + ch.abilities[a] + '</div><div class="am">' + mstr(ch.abilities[a]) + '</div></div>';
+  }).join('');
+  var skHTML = '';
+  for (var i = 0; i < SKILLS.length; i++) {
+    var sk = SKILLS[i];
+    var prof = ch.skills.indexOf(sk.n) >= 0;
+    var b = mval(ch.abilities[sk.a]) + (prof ? pb : 0);
+    var bs = (b >= 0 ? '+' : '') + b;
+    skHTML += '<div><span style="color:' + (prof?'#8b1a1a':'#ccc') + ';margin-right:3px">' + (prof?'&#9679;':'&#9675;') + '</span>' + sk.n + ' <small style="color:#888">(' + sk.a + ')</small>: <strong>' + bs + '</strong></div>';
+  }
+  var curr = '';
+  var cmap = [['CP',ch.cp],['SP',ch.sp],['GP',ch.gp],['EP',ch.ep],['PP',ch.pp]];
+  for (var c = 0; c < cmap.length; c++) { if (cmap[c][1] > 0) curr += cmap[c][0] + ': ' + cmap[c][1] + ' &nbsp; '; }
+  var eqTags = ch.equipment.map(function(e){ return '<span class="stag">' + he(e) + '</span>'; }).join('');
+  var spTags = ch.spells.map(function(s){ return '<span class="stag">' + he(s) + '</span>'; }).join('');
+  var pp2 = 10 + mval(ch.abilities.WIS) + (ch.skills.indexOf('Perception') >= 0 ? pb : 0);
 
-    <div class="sheet-section">
-      <h3>Character Traits</h3>
-      <div class="sheet-row">
-        ${ch.traits?`<div class="sheet-field"><label>Personality Traits</label><div class="val" style="white-space:pre-wrap">${esc(ch.traits)}</div></div>`:''}
-        ${ch.ideals?`<div class="sheet-field"><label>Ideals</label><div class="val" style="white-space:pre-wrap">${esc(ch.ideals)}</div></div>`:''}
-        ${ch.bonds?`<div class="sheet-field"><label>Bonds</label><div class="val" style="white-space:pre-wrap">${esc(ch.bonds)}</div></div>`:''}
-        ${ch.flaws?`<div class="sheet-field"><label>Flaws</label><div class="val" style="white-space:pre-wrap">${esc(ch.flaws)}</div></div>`:''}
-      </div>
-    </div>
-
-    ${ch.equipment.length?`
-    <div class="sheet-section"><h3>Equipment</h3>
-      <div class="tag-display">${ch.equipment.map(e=>`<span>${esc(e)}</span>`).join('')}</div>
-      ${currency?`<div style="margin-top:8px;font-size:0.88rem">${currency}</div>`:''}
-    </div>`:''}
-
-    ${ch.spells.length||ch.features?`
-    <div class="sheet-section"><h3>Spells &amp; Abilities</h3>
-      ${ch.spellAbility?`<div style="font-size:0.85rem;margin-bottom:6px">
-        Spellcasting: <strong>${esc(ch.spellAbility)}</strong> |
-        Save DC: <strong>${ch.spellDC}</strong> |
-        Attack Bonus: <strong>${esc(ch.spellAtk)||'—'}</strong> |
-        Slots: <strong>${esc(ch.spellSlots)||'—'}</strong>
-      </div>`:''}
-      ${ch.spells.length?`<div class="tag-display" style="margin-bottom:8px">${ch.spells.map(s=>`<span>${esc(s)}</span>`).join('')}</div>`:''}
-      ${ch.features?`<div style="font-size:0.88rem;white-space:pre-wrap">${esc(ch.features)}</div>`:''}
-    </div>`:''}
-
-    ${ch.notes?`<div class="sheet-section"><h3>Notes</h3><div style="font-size:0.9rem;white-space:pre-wrap">${esc(ch.notes)}</div></div>`:''}
-
-    <div style="text-align:center;margin-top:20px;font-size:0.75rem;color:#aaa;font-style:italic">May your rolls be ever in your favor ⚔</div>
-  `;
+  document.getElementById('sheetContent').innerHTML =
+    '<div class="no-print">' +
+      '<button class="btn btn-gold" onclick="window.print()">&#128424; Print</button>' +
+      '<button class="btn btn-back" onclick="backToBuilder()">&#8592; Back to Builder</button>' +
+      '<button class="btn btn-purple" onclick="showAiPanel()">&#10024; AI Character</button>' +
+    '</div>' +
+    '<div class="sheet-h1">&#9876; Character Sheet &#9876;</div>' +
+    '<div class="sheet-sub">D&amp;D Character Creator</div>' +
+    '<div class="sec"><h3>Identity</h3>' +
+    '<div class="s-row">' +
+      '<div class="sf"><label>Name</label><div class="v">' + he(ch.name||'—') + '</div></div>' +
+      '<div class="sf"><label>Player</label><div class="v">' + he(ch.player||'—') + '</div></div>' +
+      '<div class="sf"><label>Race</label><div class="v">' + he(ch.race||'—') + (ch.subrace?' ('+he(ch.subrace)+')':'') + '</div></div>' +
+    '</div>' +
+    '<div class="s-row">' +
+      '<div class="sf"><label>Class</label><div class="v">' + he(ch.class_||'—') + (ch.subclass?' – '+he(ch.subclass):'') + '</div></div>' +
+      '<div class="sf"><label>Level</label><div class="v">' + ch.level + '</div></div>' +
+      '<div class="sf"><label>XP</label><div class="v">' + ch.xp + '</div></div>' +
+      '<div class="sf"><label>Background</label><div class="v">' + he(ch.background||'—') + '</div></div>' +
+      '<div class="sf"><label>Alignment</label><div class="v">' + he(ch.alignment||'—') + '</div></div>' +
+    '</div></div>' +
+    '<div class="sec"><h3>Ability Scores</h3><div class="ab-row">' + abCells + '</div>' +
+    '<div style="font-size:0.85rem;display:flex;gap:16px;flex-wrap:wrap">' +
+      '<span>Proficiency Bonus: <strong>+' + pb + '</strong></span>' +
+      '<span>Initiative: <strong>' + mstr(ch.abilities.DEX) + '</strong></span>' +
+      '<span>Passive Perception: <strong>' + pp2 + '</strong></span>' +
+      '<span>Est. HP: <strong>' + estHP + '</strong></span>' +
+    '</div>' + (ch.abilityNotes ? '<div style="font-size:0.82rem;margin-top:6px;color:#555">' + he(ch.abilityNotes) + '</div>' : '') + '</div>' +
+    '<div class="sec"><h3>Skills</h3><div class="sk2">' + skHTML + '</div>' +
+    (ch.proficiencies ? '<div style="margin-top:6px;font-size:0.83rem"><strong>Languages/Proficiencies:</strong> ' + he(ch.proficiencies) + '</div>' : '') + '</div>' +
+    '<div class="sec"><h3>Character Traits</h3><div class="s-row">' +
+    (ch.traits ? '<div class="sf"><label>Personality Traits</label><div class="v" style="white-space:pre-wrap;font-size:0.88rem">' + he(ch.traits) + '</div></div>' : '') +
+    (ch.ideals ? '<div class="sf"><label>Ideals</label><div class="v" style="white-space:pre-wrap;font-size:0.88rem">' + he(ch.ideals) + '</div></div>' : '') +
+    (ch.bonds ? '<div class="sf"><label>Bonds</label><div class="v" style="white-space:pre-wrap;font-size:0.88rem">' + he(ch.bonds) + '</div></div>' : '') +
+    (ch.flaws ? '<div class="sf"><label>Flaws</label><div class="v" style="white-space:pre-wrap;font-size:0.88rem">' + he(ch.flaws) + '</div></div>' : '') +
+    '</div></div>' +
+    (ch.equipment.length ? '<div class="sec"><h3>Equipment</h3>' + eqTags + (curr ? '<div style="margin-top:8px;font-size:0.85rem">' + curr + '</div>' : '') + '</div>' : '') +
+    ((ch.spells.length || ch.features) ? '<div class="sec"><h3>Spells &amp; Abilities</h3>' +
+    (ch.spellAbility ? '<div style="font-size:0.83rem;margin-bottom:6px">Spellcasting: <strong>' + he(ch.spellAbility) + '</strong> | Save DC: <strong>' + ch.spellDC + '</strong> | Atk Bonus: <strong>' + he(ch.spellAtk||'—') + '</strong> | Slots: <strong>' + he(ch.spellSlots||'—') + '</strong></div>' : '') +
+    (ch.spells.length ? '<div style="margin-bottom:8px">' + spTags + '</div>' : '') +
+    (ch.features ? '<div style="font-size:0.85rem;white-space:pre-wrap">' + he(ch.features) + '</div>' : '') + '</div>' : '') +
+    (ch.notes ? '<div class="sec"><h3>Notes</h3><div style="font-size:0.88rem;white-space:pre-wrap">' + he(ch.notes) + '</div></div>' : '') +
+    '<div style="text-align:center;margin-top:18px;font-size:0.73rem;color:#aaa;font-style:italic">May your rolls be ever in your favor &#9876;</div>';
 
   document.getElementById('app').style.display = 'none';
+  document.getElementById('aiPanel').style.display = 'none';
   document.getElementById('sheet').style.display = 'block';
-  window.scrollTo(0,0);
+  window.scrollTo(0, 0);
 }
 
-function backToBuilder(){
+function backToBuilder() {
   document.getElementById('sheet').style.display = 'none';
+  document.getElementById('aiPanel').style.display = 'none';
   document.getElementById('app').style.display = 'block';
-  window.scrollTo(0,0);
+  window.scrollTo(0, 0);
+}
+
+/* ===== AI PANEL ===== */
+function showAiPanel() {
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('sheet').style.display = 'none';
+  document.getElementById('aiPanel').style.display = 'block';
+  window.scrollTo(0, 0);
+
+  document.getElementById('aiContent').innerHTML =
+    '<div class="ai-header"><h1>&#10024; Character Oracle &#10024;</h1><p>Breathe life into your hero with AI</p></div>' +
+    '<div class="api-key-wrap">' +
+      '<label>Anthropic API Key</label>' +
+      '<input type="password" id="apiKeyInput" value="' + he(savedApiKey) + '" placeholder="sk-ant-..." style="margin-top:4px">' +
+      '<small>Your key is used only in your browser and never stored on any server. Get one free at <strong>console.anthropic.com</strong></small>' +
+    '</div>' +
+    '<div style="text-align:center;margin-bottom:20px">' +
+      '<button class="btn btn-purple" onclick="generateCharacter()" style="font-size:1rem;padding:12px 32px">&#10024; Generate My Character</button>' +
+    '</div>' +
+    '<div id="aiResult"></div>' +
+    '<div class="ai-actions">' +
+      '<button class="btn btn-back" onclick="backToBuilder()">&#8592; Back to Builder</button>' +
+      '<button class="btn btn-gold" onclick="showSheet()">&#128424; View Sheet</button>' +
+    '</div>';
+}
+
+function buildPrompt() {
+  var profSkills = ch.skills.join(', ') || 'none selected';
+  var eqList = ch.equipment.join(', ') || 'none';
+  var spList = ch.spells.join(', ') || 'none';
+  var abStr = '';
+  for (var i = 0; i < ABS.length; i++) {
+    abStr += ABS[i] + ': ' + ch.abilities[ABS[i]] + ' (' + mstr(ch.abilities[ABS[i]]) + ')  ';
+  }
+  return 'You are a creative RPG writer and dungeon master. Based on the following D&D character stats, write a rich, vivid character profile. Use the details provided to inspire your writing — keep it consistent with what is given but add creative flourishes.\n\n' +
+    'CHARACTER STATS:\n' +
+    'Name: ' + (ch.name || 'Unknown') + '\n' +
+    'Race: ' + (ch.race || 'Unknown') + (ch.subrace ? ' (' + ch.subrace + ')' : '') + '\n' +
+    'Class: ' + (ch.class_ || 'Unknown') + (ch.subclass ? ' — ' + ch.subclass : '') + '\n' +
+    'Level: ' + ch.level + '\n' +
+    'Background: ' + (ch.background || 'Unknown') + '\n' +
+    'Alignment: ' + (ch.alignment || 'Unknown') + '\n' +
+    'Ability Scores: ' + abStr + '\n' +
+    'Proficient Skills: ' + profSkills + '\n' +
+    'Equipment: ' + eqList + '\n' +
+    'Spells: ' + spList + '\n' +
+    (ch.features ? 'Class Features: ' + ch.features + '\n' : '') +
+    (ch.traits ? 'Personality Traits: ' + ch.traits + '\n' : '') +
+    (ch.ideals ? 'Ideals: ' + ch.ideals + '\n' : '') +
+    (ch.bonds ? 'Bonds: ' + ch.bonds + '\n' : '') +
+    (ch.flaws ? 'Flaws: ' + ch.flaws + '\n' : '') +
+    (ch.notes ? 'Additional Notes: ' + ch.notes + '\n' : '') +
+    '\nWrite the following sections. Use vivid, immersive prose. Return ONLY valid JSON with exactly these keys:\n' +
+    '{\n' +
+    '  "epithet": "a short dramatic subtitle (e.g. The Shadowed Blade of Neverwinter)",\n' +
+    '  "appearance": "2-3 sentences describing physical appearance, clothing, and bearing",\n' +
+    '  "personality": "2-3 sentences on how they act, speak, and carry themselves",\n' +
+    '  "backstory": "3-4 sentences of compelling origin story",\n' +
+    '  "motivation": "1-2 sentences on what drives them",\n' +
+    '  "secret": "1 intriguing secret or hidden truth about this character",\n' +
+    '  "quirk": "1 memorable behavioral quirk or habit",\n' +
+    '  "combat_style": "1-2 sentences on how they fight",\n' +
+    '  "hook": "1 adventure hook — a current mission, rumor, or conflict they are involved in"\n' +
+    '}';
+}
+
+function generateCharacter() {
+  var keyEl = document.getElementById('apiKeyInput');
+  if (!keyEl) return;
+  var key = keyEl.value.trim();
+  if (!key) { showAiError('Please enter your Anthropic API key above.'); return; }
+  savedApiKey = key;
+
+  document.getElementById('aiResult').innerHTML =
+    '<div class="loading-wrap">' +
+      '<div class="spinner"></div>' +
+      '<p>The Oracle is writing your legend...<br><small>This may take 10-15 seconds</small></p>' +
+    '</div>';
+
+  fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1200,
+      messages: [{ role: 'user', content: buildPrompt() }]
+    })
+  })
+  .then(function(res) { return res.json(); })
+  .then(function(data) {
+    if (data.error) { showAiError('API Error: ' + data.error.message); return; }
+    var text = '';
+    if (data.content && data.content.length > 0) {
+      for (var i = 0; i < data.content.length; i++) {
+        if (data.content[i].type === 'text') { text = data.content[i].text; break; }
+      }
+    }
+    var parsed = null;
+    try {
+      var clean = text.replace(/```json/g,'').replace(/```/g,'').trim();
+      parsed = JSON.parse(clean);
+    } catch(e) {
+      showAiError('Could not parse AI response. Raw response:<br><pre style="font-size:0.75rem;white-space:pre-wrap;color:#e0d0ff">' + he(text) + '</pre>');
+      return;
+    }
+    renderAiCharacter(parsed);
+  })
+  .catch(function(err) {
+    showAiError('Network error: ' + err.message + '<br><small>Make sure your API key is correct and you have credits available.</small>');
+  });
+}
+
+function showAiError(msg) {
+  document.getElementById('aiResult').innerHTML = '<div class="err-box">&#9888; ' + msg + '</div>';
+}
+
+function renderAiCharacter(p) {
+  var pb = ch.profBonus;
+  var estHP = 8 + mval(ch.abilities.CON) + (ch.level - 1) * 5;
+  var abCells = ABS.map(function(a){
+    return '<div class="ai-stat"><div class="sn">' + a + '</div><div class="sv">' + ch.abilities[a] + '</div><div class="sm">' + mstr(ch.abilities[a]) + '</div></div>';
+  }).join('');
+
+  function card(title, icon, content) {
+    return '<div class="ai-card"><h3>' + icon + ' ' + title + '</h3><div>' + he(content) + '</div></div>';
+  }
+  function traitCard(title, icon, content) {
+    return '<div class="ai-card"><h3>' + icon + ' ' + title + '</h3><div class="ai-trait">' + he(content) + '</div></div>';
+  }
+
+  var html =
+    '<div class="ai-name">' + he(ch.name || 'Unknown Hero') + '</div>' +
+    '<div class="ai-class-line">' + he(ch.race||'') + ' &nbsp;&#9679;&nbsp; ' + he(ch.class_||'') + (ch.subclass?' ('+he(ch.subclass)+')':'') + ' &nbsp;&#9679;&nbsp; Level ' + ch.level + '<br><em style="color:#9c7fc0">' + he(p.epithet||'') + '</em></div>' +
+
+    '<div class="ai-card"><h3>&#9876; Stats</h3>' +
+    '<div class="ai-stat-row">' + abCells + '</div>' +
+    '<div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:0.85rem;color:#b388ff">' +
+      '<span>Prof Bonus: <strong style="color:#ffd700">+' + pb + '</strong></span>' +
+      '<span>Est. HP: <strong style="color:#ffd700">' + estHP + '</strong></span>' +
+      '<span>Initiative: <strong style="color:#ffd700">' + mstr(ch.abilities.DEX) + '</strong></span>' +
+      '<span>Alignment: <strong style="color:#ffd700">' + he(ch.alignment) + '</strong></span>' +
+    '</div></div>' +
+
+    card('Appearance', '&#128064;', p.appearance||'') +
+    card('Personality', '&#128147;', p.personality||'') +
+    card('Backstory', '&#128214;', p.backstory||'') +
+    traitCard('Motivation', '&#127775;', p.motivation||'') +
+    traitCard('Combat Style', '&#9876;', p.combat_style||'') +
+    traitCard('Quirk', '&#127927;', p.quirk||'') +
+    traitCard('Secret', '&#128274;', p.secret||'') +
+    traitCard('Adventure Hook', '&#127988;', p.hook||'');
+
+  if (ch.equipment.length) {
+    var eqTags = ch.equipment.map(function(e){ return '<span class="stag" style="background:#2a1845;border-color:#7c4dff44;color:#e0d0ff">' + he(e) + '</span>'; }).join('');
+    html += '<div class="ai-card"><h3>&#9876; Equipment</h3>' + eqTags + '</div>';
+  }
+  if (ch.spells.length) {
+    var spTags = ch.spells.map(function(s){ return '<span class="stag" style="background:#1a2845;border-color:#4d7cff44;color:#b3c8ff">' + he(s) + '</span>'; }).join('');
+    html += '<div class="ai-card"><h3>&#10024; Spells</h3>' + spTags + '</div>';
+  }
+
+  document.getElementById('aiResult').innerHTML = html;
 }
 
 render();
