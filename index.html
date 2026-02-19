@@ -223,7 +223,51 @@ function renderSteps() {
   document.getElementById('stepsBar').innerHTML = html;
 }
 
-function goTo(i) { cur = i; render(); }
+function goTo(i) { cur = i; function setupPortraitPaste() {
+  var placeholder = document.getElementById('portraitPlaceholder');
+  if (!placeholder) return;
+  placeholder.setAttribute('tabindex','0');
+  placeholder.addEventListener('click', function(){ placeholder.focus(); });
+  document.addEventListener('paste', function(e) {
+    var items = (e.clipboardData || e.originalEvent.clipboardData).items;
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        var blob = items[i].getAsFile();
+        var reader = new FileReader();
+        reader.onload = function(ev) { setPortrait(ev.target.result); };
+        reader.readAsDataURL(blob);
+        break;
+      }
+    }
+  });
+}
+
+function loadPortraitFile(input) {
+  if (!input.files || !input.files[0]) return;
+  var reader = new FileReader();
+  reader.onload = function(ev) { setPortrait(ev.target.result); };
+  reader.readAsDataURL(input.files[0]);
+}
+
+function setPortrait(src) {
+  ch.portraitSrc = src;
+  var img = document.getElementById('portraitImg');
+  var preview = document.getElementById('portraitPreview');
+  var placeholder = document.getElementById('portraitPlaceholder');
+  if (img) img.src = src;
+  if (preview) preview.style.display = 'block';
+  if (placeholder) placeholder.style.display = 'none';
+}
+
+function clearPortrait() {
+  ch.portraitSrc = '';
+  var preview = document.getElementById('portraitPreview');
+  var placeholder = document.getElementById('portraitPlaceholder');
+  if (preview) preview.style.display = 'none';
+  if (placeholder) placeholder.style.display = 'block';
+}
+
+render(); }
 function nav(back) { cur = back ? Math.max(0, cur - 1) : Math.min(STEPS.length - 1, cur + 1); render(); }
 
 function render() {
@@ -421,9 +465,24 @@ function showSheet() {
     h += '</div>';
   }
   if(ch.notes) h += '<div class="sec"><h3>Notes</h3><div style="font-size:0.88rem;white-space:pre-wrap">'+he(ch.notes)+'</div></div>';
+
+  /* portrait section */
+  h += '<div class="sec" id="portraitSec"><h3>&#127912; Character Portrait</h3>';
+  h += '<div id="portraitPreview" style="' + (ch.portraitSrc ? '' : 'display:none;') + 'text-align:center;margin-bottom:10px">';
+  h += '<img id="portraitImg" src="' + he(ch.portraitSrc||'') + '" style="max-width:100%;max-height:340px;border:2px solid var(--gold);border-radius:6px;object-fit:contain">';
+  h += '</div>';
+  h += '<div id="portraitPlaceholder" style="' + (ch.portraitSrc ? 'display:none;' : '') + 'border:2px dashed #b09060;border-radius:6px;padding:30px;text-align:center;color:#888;font-style:italic;font-size:0.9rem;margin-bottom:10px">';
+  h += '&#127912; Paste your character image here<br><small style="font-size:0.75rem">Click the area then press Ctrl+V (or Cmd+V on Mac)</small>';
+  h += '</div>';
+  h += '<div class="no-print" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;padding:8px 0">';
+  h += '<label style="padding:8px 16px;background:var(--gold);color:var(--dark);border-radius:4px;cursor:pointer;font-size:0.85rem;font-weight:bold">&#128193; Upload Image<input type="file" accept="image/*" style="display:none" onchange="loadPortraitFile(this)"></label>';
+  h += '<button onclick="clearPortrait()" style="padding:8px 16px;background:#d4c090;color:var(--dark);border:none;border-radius:4px;cursor:pointer;font-size:0.85rem;font-weight:bold">&#10006; Clear</button>';
+  h += '</div></div>';
+
   h += '<div style="text-align:center;margin-top:18px;font-size:0.73rem;color:#aaa;font-style:italic">May your rolls be ever in your favor &#9876;</div>';
   document.getElementById('sheetContent').innerHTML = h;
   showAll('sheet');
+  setupPortraitPaste();
 }
 
 function showAiPanel() {
