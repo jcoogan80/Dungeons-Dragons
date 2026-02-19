@@ -523,13 +523,8 @@ function showSheet() {
 function showAiPanel() {
   showAll('ai');
   document.getElementById('aiContent').innerHTML =
-    '<div class="ai-header"><h1>&#10024; Character Oracle &#10024;</h1><p>Breathe life into your hero with AI</p></div>' +
-    '<div class="api-key-wrap">' +
-      '<label>Anthropic API Key</label>' +
-      '<input type="password" id="apiKeyInput" value="' + he(savedApiKey) + '" placeholder="sk-ant-..." style="margin-top:4px">' +
-      '<small>Your key is used only in your browser and never sent to any server other than Anthropic. Get one free at <strong>console.anthropic.com</strong></small>' +
-    '</div>' +
-    '<div style="text-align:center;margin-bottom:20px">' +
+    '<div class="ai-header"><h1>&#10024; Character Oracle &#10024;</h1><p>Your hero brought to life</p></div>' +
+    '<div style="text-align:center;margin-bottom:24px">' +
       '<button onclick="generateCharacter()" style="padding:14px 36px;background:#5a2d82;color:#fff;border:none;border-radius:6px;font-family:Georgia,serif;font-size:1rem;font-weight:bold;cursor:pointer">&#10024; Generate My Character</button>' +
     '</div>' +
     '<div id="aiResult"></div>' +
@@ -539,83 +534,207 @@ function showAiPanel() {
     '</div>';
 }
 
-function buildPrompt() {
-  var profSkills = ch.skills.join(', ') || 'none';
-  var eqList = ch.equipment.join(', ') || 'none';
-  var spList = ch.spells.join(', ') || 'none';
-  var abStr = '';
-  for (var i = 0; i < ABS.length; i++) { abStr += ABS[i] + ': ' + ch.abilities[ABS[i]] + ' (' + mstr(ch.abilities[ABS[i]]) + ')  '; }
-  return 'You are a creative RPG writer. Based on this D&D character, write a rich character profile.\n\n' +
-    'Name: ' + (ch.name || 'Unknown') + '\n' +
-    'Race: ' + (ch.race || 'Unknown') + (ch.subrace ? ' (' + ch.subrace + ')' : '') + '\n' +
-    'Class: ' + (ch.class_ || 'Unknown') + (ch.subclass ? ' — ' + ch.subclass : '') + '\n' +
-    'Level: ' + ch.level + '\n' +
-    'Background: ' + (ch.background || 'Unknown') + '\n' +
-    'Alignment: ' + (ch.alignment || 'Unknown') + '\n' +
-    'Abilities: ' + abStr + '\n' +
-    'Skills: ' + profSkills + '\n' +
-    'Equipment: ' + eqList + '\n' +
-    'Spells: ' + spList + '\n' +
-    (ch.features ? 'Features: ' + ch.features + '\n' : '') +
-    (ch.traits ? 'Traits: ' + ch.traits + '\n' : '') +
-    (ch.ideals ? 'Ideals: ' + ch.ideals + '\n' : '') +
-    (ch.bonds ? 'Bonds: ' + ch.bonds + '\n' : '') +
-    (ch.flaws ? 'Flaws: ' + ch.flaws + '\n' : '') +
-    (ch.notes ? 'Notes: ' + ch.notes + '\n' : '') +
-    '\nReturn ONLY a valid JSON object with these exact keys (no markdown, no extra text):\n' +
-    '{"epithet":"dramatic subtitle","appearance":"2-3 sentences on looks","personality":"2-3 sentences on demeanor","backstory":"3-4 sentence origin story","motivation":"what drives them","secret":"one hidden truth","quirk":"one memorable habit","combat_style":"how they fight","hook":"one current adventure hook"}';
-}
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
 function generateCharacter() {
-  var keyEl = document.getElementById('apiKeyInput');
-  if (!keyEl) return;
-  var key = keyEl.value.trim();
-  if (!key) { showAiError('Please enter your Anthropic API key above.'); return; }
-  savedApiKey = key;
+  var name = ch.name || 'the hero';
+  var race = ch.race || 'wanderer';
+  var cls  = ch.class_ || 'adventurer';
+  var sub  = ch.subclass || '';
+  var bg   = ch.background || 'unknown origins';
+  var align = ch.alignment || 'True Neutral';
+  var lvl  = ch.level;
 
-  document.getElementById('aiResult').innerHTML =
-    '<div class="loading-wrap"><div class="spinner"></div><p>The Oracle is writing your legend...<br><small>This may take 10-15 seconds</small></p></div>';
+  var str = ch.abilities.STR, dex = ch.abilities.DEX, con = ch.abilities.CON;
+  var intel = ch.abilities.INT, wis = ch.abilities.WIS, cha = ch.abilities.CHA;
 
-  fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': key,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true'
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1200,
-      messages: [{ role: 'user', content: buildPrompt() }]
-    })
-  })
-  .then(function(res) { return res.json(); })
-  .then(function(data) {
-    if (data.error) { showAiError('API Error: ' + data.error.message); return; }
-    var text = '';
-    if (data.content) {
-      for (var i = 0; i < data.content.length; i++) {
-        if (data.content[i].type === 'text') { text = data.content[i].text; break; }
-      }
-    }
-    var parsed = null;
-    try {
-      var clean = text.replace(/```json/g, '').replace(/```/g, '').trim();
-      parsed = JSON.parse(clean);
-    } catch(e) {
-      showAiError('Could not parse response. Raw output:<br><pre style="font-size:0.75rem;white-space:pre-wrap;color:#e0d0ff;margin-top:8px">' + he(text) + '</pre>');
-      return;
-    }
-    renderAiCharacter(parsed);
-  })
-  .catch(function(err) {
-    showAiError('Network error: ' + err.message + '<br><small>Check your API key and internet connection.</small>');
-  });
-}
+  /* -- Derive dominant stat flavour -- */
+  var stats = [{k:'STR',v:str},{k:'DEX',v:dex},{k:'CON',v:con},{k:'INT',v:intel},{k:'WIS',v:wis},{k:'CHA',v:cha}];
+  stats.sort(function(a,b){return b.v-a.v;});
+  var top = stats[0].k;
+  var bot = stats[stats.length-1].k;
 
-function showAiError(msg) {
-  document.getElementById('aiResult').innerHTML = '<div class="err-box">&#9888; ' + msg + '</div>';
+  var statFlavour = {
+    STR: ['powerfully built','broad-shouldered and imposing','whose raw physical strength is immediately apparent'],
+    DEX: ['lithe and quick-eyed','with a graceful, catlike economy of movement','who moves with unsettling quietness'],
+    CON: ['weathered and tough as old leather','whose endurance seems almost unnatural','with a constitution forged through hardship'],
+    INT: ['sharp-eyed and calculating','whose quick mind misses nothing','with an analytical gaze that makes others uneasy'],
+    WIS: ['calm and observant','whose patient eyes seem to see through pretense','radiating a quiet, knowing stillness'],
+    CHA: ['magnetically charismatic','whose presence commands a room without effort','with a voice and bearing that draws people in']
+  };
+
+  /* -- Appearance -- */
+  var hairOptions = {
+    'Elf': ['silver','moonlit white','autumn gold','midnight black'],
+    'High Elf': ['silver','platinum','starlight white'],
+    'Wood Elf': ['chestnut brown','forest green-tinged','auburn'],
+    'Dark Elf': ['white','silver','ash grey'],
+    'Dwarf': ['fiery red','dark brown','iron grey','black'],
+    'Hill Dwarf': ['warm brown','copper red','flecked grey'],
+    'Mountain Dwarf': ['dark black','iron grey','russet'],
+    'Halfling': ['curly brown','sandy blonde','warm chestnut'],
+    'Tiefling': ['jet black','deep violet','blood red'],
+    'Dragonborn': ['none — scaled','nonexistent','replaced by crests'],
+    'Human': ['dark brown','dirty blonde','black','auburn','grey-streaked']
+  };
+  var eyeOptions = {
+    'Elf': ['violet','silver','pale blue','amber'],
+    'Tiefling': ['solid gold','burning red','deep violet'],
+    'Dragonborn': ['reptilian gold','amber','deep red'],
+    'Human': ['grey','brown','green','hazel','deep blue']
+  };
+  var hair = (hairOptions[race] ? pick(hairOptions[race]) : pick(['brown','black','grey','blonde'])) + ' hair';
+  var eyes = (eyeOptions[race] ? pick(eyeOptions[race]) : pick(['grey','amber','brown','green'])) + ' eyes';
+  var build = pick(statFlavour[top] || statFlavour['STR']);
+
+  /* -- Class combat style -- */
+  var combatStyles = {
+    'Barbarian': 'charges into battle in a fury, shrugging off wounds that would fell lesser warriors, relying on raw power and instinct over finesse.',
+    'Bard': 'fights with flair, weaving magical inspiration and distracting taunts between precise strikes, turning the battlefield into a performance.',
+    'Cleric': 'stands firm at the front, channeling divine power in equal measure as weapon strikes, protecting allies and smiting foes with righteous force.',
+    'Druid': 'uses the environment as a weapon, shifting forms and calling on elemental forces to overwhelm enemies before they can close the distance.',
+    'Fighter': 'is a disciplined, efficient combatant — reading the battlefield quickly, exploiting openings, and outlasting opponents through superior technique.',
+    'Monk': 'flows through combat like water, deflecting strikes and answering with precise, devastating strikes that strike pressure points and stagger opponents.',
+    'Paladin': 'fights with conviction, smiting enemies with divine energy while holding the line for allies, an immovable force of righteous will.',
+    'Ranger': 'prefers to engage from range, tracking movements and choosing the perfect moment to strike, only drawing a blade when forced to.',
+    'Rogue': 'strikes from shadows or blind spots, landing one devastating blow before repositioning — patient, precise, and ruthlessly efficient.',
+    'Sorcerer': 'unleashes raw magical power with little restraint, channeling innate energy into devastating spells with speed that trained wizards envy.',
+    'Warlock': 'fights with eldritch force and unsettling confidence, blasting foes with patron-granted power while unnerving enemies with a preternatural calm.',
+    'Wizard': 'approaches combat like a problem to be solved, casting precisely and deliberately, manipulating the battlefield before the first sword is swung.',
+    'Artificer': 'relies on clever gadgets and constructs, turning every fight into an engineering problem with a tactical solution.',
+    'Blood Hunter': 'fights with grim intensity, marking prey and hunting them relentlessly, willing to shed their own blood to destroy their quarry.'
+  };
+  var combat = combatStyles[cls] || 'fights with a style honed through hard experience, adapting to each threat with practical, battle-tested instincts.';
+  if (sub) combat = combat + (sub ? ' Their ' + sub + ' training adds a distinct edge to this approach.' : '');
+
+  /* -- Background flavour -- */
+  var bgOrigins = {
+    'Acolyte': 'raised within the walls of a temple, spending years in devotion and study before the call to adventure proved stronger than the call to prayer.',
+    'Criminal': 'grew up learning that survival meant doing what others would not — bending and breaking rules became second nature long before it became a profession.',
+    'Folk Hero': 'was once an ordinary person thrust into extraordinary circumstances. One defining act of bravery changed everything, and the reputation that followed has been both gift and burden.',
+    'Noble': 'was born into privilege and politics, learning early that power is the only currency that matters — and that it can be taken as easily as given.',
+    'Sage': 'spent years buried in libraries and academies, chasing knowledge with the same obsession others chase gold. What they found in those dusty tomes eventually drove them out into the world.',
+    'Soldier': 'knows the smell of a battlefield and the weight of loss. Years of military service built discipline and loyalty — and left scars that do not show.',
+    'Outlander': 'comes from wild places far from civilization, more comfortable under open sky than any roof, and more fluent in the language of nature than of courts.',
+    'Hermit': 'withdrew from the world seeking answers, and after years of solitude found something — though whether it was wisdom or madness is still debated.',
+    'Sailor': 'has seen every port and survived every storm worth surviving, carrying the restless horizon-hunger that never quite lets sailors stay in one place for long.',
+    'Entertainer': 'learned early that a story well told can open doors, loosen purses, and defuse tensions that swords cannot — a skill that has served well ever since.',
+    'Charlatan': 'built a life on carefully constructed truths, half-truths, and outright lies — and got so good at it they sometimes struggle to remember which is which.',
+    'Urchin': 'clawed up from nothing, raised by the streets and hard lessons, trusting few and owing nothing to anyone.'
+  };
+  var origin = bgOrigins[bg] || 'carries a past shaped by hardship and choice in equal measure, arriving at the adventuring life through a road few others would have survived.';
+
+  /* -- Alignment personality -- */
+  var alignFlavour = {
+    'Lawful Good': 'believes deeply in order and justice, holding themselves to a strict personal code even when no one is watching.',
+    'Neutral Good': 'does what feels right regardless of law or chaos, guided by a genuine desire to help others.',
+    'Chaotic Good': 'follows their own moral compass wherever it leads, unbothered by rules that get in the way of doing good.',
+    'Lawful Neutral': 'values order and structure above all else, believing that stable systems — whatever their nature — are preferable to chaos.',
+    'True Neutral': 'keeps a careful balance, avoiding extremes and judging each situation on its own terms.',
+    'Chaotic Neutral': 'acts on impulse and self-interest, following whims rather than causes, loyal to freedom above all else.',
+    'Lawful Evil': 'pursues personal goals within a rigid framework of rules and hierarchy, understanding that power requires structure.',
+    'Neutral Evil': 'does whatever serves their own interests, loyal only to themselves and indifferent to the harm left behind.',
+    'Chaotic Evil': 'is driven by destruction and self-gratification, with little concern for rules, others, or consequences.'
+  };
+  var alignDesc = alignFlavour[align] || 'navigates the world with a personal moral philosophy that defies easy categorisation.';
+
+  /* -- Quirks -- */
+  var quirks = [
+    'always sleeps with their back to a wall and one hand on their weapon.',
+    'hums softly and tunelessly when thinking through a problem.',
+    'collects a small stone from every new place they visit.',
+    'never makes a promise lightly — and never breaks one once made.',
+    'has an uncanny habit of knowing when someone is lying, and an even more uncanny habit of saying nothing about it.',
+    'talks to their weapons, equipment, or animal companions as though they can understand.',
+    'refuses to eat the last of any food at a table, always leaving something — an old habit whose origin they no longer remember.',
+    'traces patterns absentmindedly on surfaces when idle — maps, perhaps, or something older.',
+    'is always the first to notice when someone in a room is afraid.',
+    'keeps a journal written in a personal cipher no one else can read.'
+  ];
+  var quirk = pick(quirks);
+
+  /* -- Secrets -- */
+  var secrets = [
+    'carries a name that is not their own — the original owner of that name died under circumstances they have never spoken of.',
+    'is searching for someone who wronged them deeply, and the search has lasted long enough that revenge and purpose have become indistinguishable.',
+    'has a past connection to an organisation, faction, or power they now actively work against.',
+    'knows something they should not — a secret powerful enough that the wrong people learning of it would be fatal.',
+    'survived something that should have killed them and has never fully understood why they lived when others did not.',
+    'has turned down power once before — an offer, a gift, or an inheritance — and wonders sometimes if that was the greatest mistake of their life.',
+    'is not entirely what they appear. The face they show the world is a carefully constructed version of who they used to be.',
+    'owes a debt they cannot repay to someone who has never collected — and that patient silence frightens them more than any open threat.'
+  ];
+  var secret = pick(secrets);
+
+  /* -- Motivation -- */
+  var motivations = [];
+  if (ch.ideals) motivations.push('Driven by the belief that ' + ch.ideals.split('\n')[0].toLowerCase().replace(/^[^—]*—\s*/,'') + ', every decision is filtered through this lens.');
+  if (ch.bonds) motivations.push(ch.bonds.split('\n')[0]);
+  if (motivations.length === 0) {
+    motivations = [
+      'seeks to prove something — to others, or to themselves — and will not stop until the question is finally answered.',
+      'is driven by a debt, sworn or unspoken, that pulls them forward even when the road is hardest.',
+      'chases a horizon that keeps moving, unsure whether the destination matters as much as the journey itself.'
+    ];
+    motivations = [pick(motivations)];
+  }
+  var motivation = motivations[0];
+
+  /* -- Adventure hook -- */
+  var hooks = [
+    'A letter arrived recently — unsigned, but written in a hand they recognise. It contained only a location and a date.',
+    'Someone has been following them for three days. Whoever it is, they are good enough that most people would never have noticed.',
+    'A name from their past has resurfaced in an unexpected place — connected to something much larger and more dangerous than they bargained for.',
+    'They were recently offered a job that seemed too simple. It was not simple.',
+    'An old ally has gone silent at exactly the wrong moment, and the silence has started to feel like a warning.',
+    'They are carrying something that at least two different powerful parties want badly enough to send people after them.',
+    'A dream — vivid, recurring, and disturbingly specific — has begun pointing them toward a place they have never been.',
+    'A bounty has been posted with their description on it. The crime listed is one they did not commit. Probably.'
+  ];
+  var hook = pick(hooks);
+
+  /* -- Epithet -- */
+  var epithets = {
+    'Barbarian': ['the Unbroken','Ironblood','the Unrelenting','Stormborn'],
+    'Bard': ['the Silver-Tongued','Songweaver','the Gilded','of a Thousand Tales'],
+    'Cleric': ['the Devoted','the Blessed','Voice of the Unseen','Keeper of the Flame'],
+    'Druid': ['of the Wildwood','the Thornwarden','Voice of the Green','the Rootwalker'],
+    'Fighter': ['Steelbrow','the Unyielding','Ironclad','the Scarred'],
+    'Monk': ['the Still','of the Empty Hand','Dawnfist','the Unmoving'],
+    'Paladin': ['the Just','Oathkeeper','the Shining','Shield of the Faithful'],
+    'Ranger': ['of the Long Road','Duskwalker','the Unseen','Shadowtread'],
+    'Rogue': ['the Ghost','of the Quiet Blade','Nightfall','the Unseen Hand'],
+    'Sorcerer': ['the Stormborn','of the Burning Blood','Skycaller','the Unbound'],
+    'Warlock': ['the Pact-Bound','of the Veiled Eye','the Marked','Shadowpact'],
+    'Wizard': ['the Learned','Arcanist','the Knowing','of the Seventh Circle'],
+    'Artificer': ['the Tinkerer','the Ingenious','of the Clockwork Mind','the Forged'],
+    'Blood Hunter': ['the Cursed','of the Crimson Rite','the Marked','Bloodsworn']
+  };
+  var epithetList = epithets[cls] || ['the Wanderer','of the Lost Road','the Unnamed','of Uncertain Origin'];
+  var epithet = pick(epithetList);
+
+  var estHP = 8 + mval(ch.abilities.CON) + (ch.level - 1) * 5;
+
+  var profile = {
+    epithet: epithet,
+    appearance: name + ' is a ' + build + ' ' + race + ' with ' + hair + ' and ' + eyes + '. ' +
+      'At level ' + lvl + ', ' + (lvl >= 10 ? 'the marks of long adventuring are written across their face and bearing — this is someone who has seen much and survived it all.' : lvl >= 5 ? 'they carry themselves with the quiet confidence of someone who has faced real danger and come out the other side.' : 'there is still a certain freshness to them, tempered already by the first hard lessons of life on the road.') +
+      (ch.equipment.length ? ' They are typically seen with ' + ch.equipment.slice(0,2).join(' and ').toLowerCase() + ' close at hand.' : ''),
+    personality: name + ' ' + alignDesc + ' ' +
+      (ch.traits ? ch.traits.split('\n')[0] : pick(['They are not one for idle conversation, preferring action to words.','They face the world with a dry pragmatism that others sometimes mistake for coldness.','There is a warmth to them that emerges slowly, earned rather than given freely.'])),
+    backstory: name + ' ' + origin + ' ' +
+      'The path that led from that life to this one was neither straight nor easy, marked by ' +
+      pick(['a defining loss that reshaped everything that followed','a chance encounter that opened a door they could not close again','a choice made in desperation that turned out to be the right one']) +
+      '. Now, at level ' + lvl + ', they are ' +
+      (lvl >= 10 ? 'a seasoned force — shaped by years of hard experience into something formidable.' : lvl >= 5 ? 'finding their footing as a genuine power in the world.' : 'still early in their story, but already changed by what they have seen.'),
+    motivation: motivation,
+    secret: name + ' ' + secret,
+    quirk: name + ' ' + quirk,
+    combat_style: name + ' ' + combat,
+    hook: hook
+  };
+
+  renderAiCharacter(profile);
 }
 
 function renderAiCharacter(p) {
