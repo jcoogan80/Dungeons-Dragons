@@ -97,7 +97,7 @@ input:focus, textarea:focus { outline: 2px solid var(--gold); }
 .ai-header p { color: #7c6a9a; font-style: italic; font-size: 0.9rem; }
 .ai-card { background: #1a1030; border: 1px solid #5a2d82; border-radius: 10px; padding: 20px; margin-bottom: 16px; box-shadow: 0 0 20px #7c4dff22; }
 .ai-card h3 { color: #b388ff; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #5a2d82; padding-bottom: 6px; margin-bottom: 12px; }
-.ai-card p, .ai-card div { color: #e0d0ff; font-size: 0.92rem; line-height: 1.7; }
+.ai-card div { color: #e0d0ff; font-size: 0.92rem; line-height: 1.7; }
 .ai-name { text-align: center; font-size: 2rem; color: #ffd700; font-style: italic; margin-bottom: 6px; text-shadow: 0 0 15px #ffd70066; }
 .ai-class-line { text-align: center; color: #b388ff; font-size: 1rem; margin-bottom: 20px; letter-spacing: 1px; }
 .ai-stat-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
@@ -106,15 +106,6 @@ input:focus, textarea:focus { outline: 2px solid var(--gold); }
 .ai-stat .sv { font-size: 1.3rem; font-weight: bold; color: #ffd700; }
 .ai-stat .sm { font-size: 0.8rem; color: #b388ff; }
 .ai-trait { background: #2a1845; border-left: 3px solid #7c4dff; border-radius: 4px; padding: 8px 12px; margin: 6px 0; color: #e0d0ff; font-size: 0.88rem; line-height: 1.6; }
-.loading-wrap { text-align: center; padding: 60px 20px; }
-.loading-wrap p { color: #9c7fc0; font-style: italic; margin-top: 16px; font-size: 0.95rem; }
-.spinner { width: 48px; height: 48px; border: 4px solid #5a2d82; border-top-color: #b388ff; border-radius: 50%; animation: spin 0.9s linear infinite; margin: 0 auto; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.api-key-wrap { background: #1a1030; border: 1px solid #5a2d82; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
-.api-key-wrap label { color: #b388ff; }
-.api-key-wrap input { background: #0d0820; border-color: #5a2d82; color: #e0d0ff; }
-.api-key-wrap small { color: #7c6a9a; font-size: 0.78rem; display: block; margin-top: 4px; }
-.err-box { background: #3a1020; border: 1px solid #c0392b; border-radius: 6px; padding: 14px; color: #ff8a80; font-size: 0.9rem; margin-bottom: 16px; }
 .ai-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; padding: 10px 0 20px; }
 
 @media print {
@@ -133,7 +124,7 @@ input:focus, textarea:focus { outline: 2px solid var(--gold); }
     <h1>&#9876; Character Creator &#9876;</h1>
     <p>Forge your hero's legend</p>
     <div class="header-btns">
-      <button class="btn btn-purple btn-sm" onclick="showAiPanel()">&#10024; Bring to Life with AI</button>
+      <button class="btn btn-purple btn-sm" onclick="showAiPanel()">&#10024; Bring to Life</button>
       <button class="btn btn-gold btn-sm" onclick="showSheet()">&#128424; Generate Sheet</button>
     </div>
   </div>
@@ -180,7 +171,6 @@ var SKILLS = [
 ];
 
 var cur = 0;
-var savedApiKey = '';
 var ch = {
   name:'', player:'', alignment:'Lawful Good', level:1, xp:0,
   race:'', subrace:'', class_:'', subclass:'', background:'',
@@ -197,6 +187,7 @@ function mstr(s) { var m = mval(s); return (m >= 0 ? '+' : '') + m; }
 function he(s) {
   return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
 function comboField(field, listKey, placeholder) {
   var opts = (SUG[listKey] || []).map(function(o) { return '<option value="' + he(o) + '">'; }).join('');
@@ -245,28 +236,25 @@ function navBtns() {
   return '<div class="nav">' + back + next + '</div>';
 }
 
+/* ===== STEPS ===== */
 function s0() {
-  var html = '<h2>Character Identity</h2>';
-  html += '<div class="g2">';
+  var html = '<h2>Character Identity</h2><div class="g2">';
   html += '<div class="fg"><label>Character Name</label><input type="text" value="' + he(ch.name) + '" oninput="ch.name=this.value" placeholder="e.g. Thalindra Moonwhisper"></div>';
   html += '<div class="fg"><label>Player Name</label><input type="text" value="' + he(ch.player) + '" oninput="ch.player=this.value" placeholder="Your name"></div>';
   html += '<div class="fg"><label>Level (1-20)</label><input type="number" min="1" max="20" value="' + ch.level + '" oninput="ch.level=parseInt(this.value)||1;ch.profBonus=Math.ceil(ch.level/4)+1"></div>';
   html += '<div class="fg"><label>Experience Points</label><input type="number" min="0" value="' + ch.xp + '" oninput="ch.xp=parseInt(this.value)||0"></div>';
   html += '<div class="fg"><label>Alignment</label>' + comboField('alignment', 'alignment') + '</div>';
-  html += '</div>';
-  html += navBtns();
+  html += '</div>' + navBtns();
   return html;
 }
 
 function s1() {
-  var html = '<h2>Race &amp; Class</h2>';
-  html += '<div class="g2">';
+  var html = '<h2>Race &amp; Class</h2><div class="g2">';
   html += '<div class="fg"><label>Race</label>' + comboField('race', 'race') + '</div>';
   html += '<div class="fg"><label>Subrace / Variant</label>' + comboField('subrace', 'subrace', 'e.g. High Elf') + '</div>';
   html += '<div class="fg"><label>Class</label>' + comboField('class_', 'class_') + '</div>';
   html += '<div class="fg"><label>Subclass / Archetype</label>' + comboField('subclass', 'subclass', 'e.g. School of Evocation') + '</div>';
-  html += '</div>';
-  html += navBtns();
+  html += '</div>' + navBtns();
   return html;
 }
 
@@ -276,98 +264,73 @@ function s2() {
   html += '<div class="ability-grid">';
   for (var i = 0; i < ABS.length; i++) {
     var a = ABS[i];
-    html += '<div class="ab-box">';
-    html += '<div class="ab-name">' + a + '</div>';
+    html += '<div class="ab-box"><div class="ab-name">' + a + '</div>';
     html += '<input class="ab-score" type="number" min="1" max="30" value="' + ch.abilities[a] + '" oninput="ch.abilities[\'' + a + '\']=parseInt(this.value)||1;document.getElementById(\'mod_' + a + '\').textContent=mstr(ch.abilities[\'' + a + '\'])">';
-    html += '<div class="ab-mod" id="mod_' + a + '">' + mstr(ch.abilities[a]) + '</div>';
-    html += '</div>';
+    html += '<div class="ab-mod" id="mod_' + a + '">' + mstr(ch.abilities[a]) + '</div></div>';
   }
-  html += '</div>';
-  html += '<div class="g2" style="margin-top:12px">';
+  html += '</div><div class="g2" style="margin-top:12px">';
   html += '<div class="fg"><label>Proficiency Bonus</label><input type="number" min="1" max="9" value="' + ch.profBonus + '" oninput="ch.profBonus=parseInt(this.value)||2" style="max-width:80px"></div>';
   html += '<div class="fg"><label>Bonus Notes</label><textarea oninput="ch.abilityNotes=this.value">' + he(ch.abilityNotes) + '</textarea></div>';
-  html += '</div>';
-  html += navBtns();
+  html += '</div>' + navBtns();
   return html;
 }
 
 function s3() {
-  var html = '<h2>Background &amp; Skills</h2>';
-  html += '<div class="g2">';
+  var html = '<h2>Background &amp; Skills</h2><div class="g2">';
   html += '<div class="fg"><label>Background</label>' + comboField('background', 'background') + '</div>';
   html += '<div class="fg"><label>Languages &amp; Proficiencies</label>' + comboField('proficiencies', 'languages', 'Common, Elvish...') + '</div>';
-  html += '</div>';
-  html += '<div class="fg"><label>Skill Proficiencies</label><div class="skills-grid">';
+  html += '</div><div class="fg"><label>Skill Proficiencies</label><div class="skills-grid">';
   for (var i = 0; i < SKILLS.length; i++) {
     var sk = SKILLS[i];
     var prof = ch.skills.indexOf(sk.n) >= 0;
     var bonus = mval(ch.abilities[sk.a]) + (prof ? ch.profBonus : 0);
     var bs = (bonus >= 0 ? '+' : '') + bonus;
-    html += '<div class="sk-row">';
-    html += '<input type="checkbox"' + (prof ? ' checked' : '') + ' onchange="toggleSkill(\'' + sk.n + '\',this.checked)">';
-    html += '<span>' + sk.n + '</span>';
-    html += '<span class="sk-bonus">' + bs + ' (' + sk.a + ')</span>';
-    html += '</div>';
+    html += '<div class="sk-row"><input type="checkbox"' + (prof ? ' checked' : '') + ' onchange="toggleSkill(\'' + sk.n + '\',this.checked)"><span>' + sk.n + '</span><span class="sk-bonus">' + bs + ' (' + sk.a + ')</span></div>';
   }
-  html += '</div></div>';
-  html += '<div class="g2" style="margin-top:12px">';
+  html += '</div></div><div class="g2" style="margin-top:12px">';
   var fields = [['traits','Personality Traits','Describe your personality...'],['ideals','Ideals','What do you believe in?'],['bonds','Bonds','What connects you to the world?'],['flaws','Flaws','Your greatest weakness?']];
   for (var f = 0; f < fields.length; f++) {
     var fd = fields[f];
-    html += '<div class="fg"><label>' + fd[1] + '</label>';
-    html += '<textarea id="ta_' + fd[0] + '" oninput="ch.' + fd[0] + '=this.value" placeholder="' + fd[2] + '">' + he(ch[fd[0]]) + '</textarea>';
-    html += chipRow(fd[0], fd[0]);
-    html += '</div>';
+    html += '<div class="fg"><label>' + fd[1] + '</label><textarea id="ta_' + fd[0] + '" oninput="ch.' + fd[0] + '=this.value" placeholder="' + fd[2] + '">' + he(ch[fd[0]]) + '</textarea>' + chipRow(fd[0], fd[0]) + '</div>';
   }
-  html += '</div>';
-  html += navBtns();
+  html += '</div>' + navBtns();
   return html;
 }
 
 function s4() {
-  var html = '<h2>Equipment</h2>';
-  html += '<div class="tag-row">';
+  var html = '<h2>Equipment</h2><div class="tag-row">';
   html += '<input type="text" id="eq_in" list="dl_eq" placeholder="Type or pick from list, then Add..." onkeydown="if(event.key===\'Enter\')addItem(\'equipment\',\'eq_in\')">';
   html += '<datalist id="dl_eq">' + SUG.equipment.map(function(o) { return '<option value="' + he(o) + '">'; }).join('') + '</datalist>';
-  html += '<button class="add-btn" onclick="addItem(\'equipment\',\'eq_in\')">+ Add</button>';
-  html += '</div>';
+  html += '<button class="add-btn" onclick="addItem(\'equipment\',\'eq_in\')">+ Add</button></div>';
   html += '<div class="tags" style="margin-bottom:14px">';
   for (var i = 0; i < ch.equipment.length; i++) {
     html += '<div class="tag">' + he(ch.equipment[i]) + '<button onclick="removeItem(\'equipment\',' + i + ')">&#215;</button></div>';
   }
-  html += '</div>';
-  html += '<div class="g3">';
+  html += '</div><div class="g3">';
   var coins = [['cp','CP (Copper)'],['sp','SP (Silver)'],['gp','GP (Gold)'],['ep','EP (Electrum)'],['pp','PP (Platinum)']];
   for (var c = 0; c < coins.length; c++) {
     html += '<div class="fg"><label>' + coins[c][1] + '</label><input type="number" min="0" value="' + ch[coins[c][0]] + '" oninput="ch[\'' + coins[c][0] + '\']=parseInt(this.value)||0"></div>';
   }
-  html += '</div>';
-  html += navBtns();
+  html += '</div>' + navBtns();
   return html;
 }
 
 function s5() {
-  var html = '<h2>Spells &amp; Abilities</h2>';
-  html += '<div class="g2" style="margin-bottom:12px">';
+  var html = '<h2>Spells &amp; Abilities</h2><div class="g2" style="margin-bottom:12px">';
   html += '<div class="fg"><label>Spellcasting Ability</label>' + comboField('spellAbility', 'spellAbility', 'INT / WIS / CHA') + '</div>';
   html += '<div class="fg"><label>Spell Save DC</label><input type="number" value="' + ch.spellDC + '" oninput="ch.spellDC=parseInt(this.value)||8"></div>';
   html += '<div class="fg"><label>Spell Attack Bonus</label><input type="text" value="' + he(ch.spellAtk) + '" oninput="ch.spellAtk=this.value" placeholder="e.g. +5"></div>';
   html += '<div class="fg"><label>Spell Slots (e.g. 4/3/2)</label><input type="text" value="' + he(ch.spellSlots) + '" oninput="ch.spellSlots=this.value" placeholder="Lvl1/Lvl2/Lvl3..."></div>';
-  html += '</div>';
-  html += '<div class="fg"><label>Add Spell / Cantrip</label>';
-  html += '<div class="tag-row">';
+  html += '</div><div class="fg"><label>Add Spell / Cantrip</label><div class="tag-row">';
   html += '<input type="text" id="sp_in" list="dl_sp" placeholder="Type or pick from list, then Add..." onkeydown="if(event.key===\'Enter\')addItem(\'spells\',\'sp_in\')">';
   html += '<datalist id="dl_sp">' + SUG.spells.map(function(o) { return '<option value="' + he(o) + '">'; }).join('') + '</datalist>';
-  html += '<button class="add-btn" onclick="addItem(\'spells\',\'sp_in\')">+ Add</button>';
-  html += '</div>';
+  html += '<button class="add-btn" onclick="addItem(\'spells\',\'sp_in\')">+ Add</button></div>';
   html += '<div class="tags" style="margin-bottom:12px">';
   for (var i = 0; i < ch.spells.length; i++) {
     html += '<div class="tag">' + he(ch.spells[i]) + '<button onclick="removeItem(\'spells\',' + i + ')">&#215;</button></div>';
   }
-  html += '</div></div>';
-  html += '<div class="fg"><label>Class Features &amp; Special Abilities</label>';
-  html += '<textarea oninput="ch.features=this.value" style="min-height:80px" placeholder="e.g. Rage 2/day, Sneak Attack 3d6...">' + he(ch.features) + '</textarea>';
-  html += '</div>';
+  html += '</div></div><div class="fg"><label>Class Features &amp; Special Abilities</label>';
+  html += '<textarea oninput="ch.features=this.value" style="min-height:80px" placeholder="e.g. Rage 2/day, Sneak Attack 3d6...">' + he(ch.features) + '</textarea></div>';
   html += navBtns();
   return html;
 }
@@ -384,8 +347,7 @@ function s6() {
   html += '<div class="sf"><label>Level</label><div class="v">' + ch.level + '</div></div>';
   html += '<div class="sf"><label>Background</label><div class="v">' + he(ch.background || '—') + '</div></div>';
   html += '<div class="sf"><label>Alignment</label><div class="v">' + he(ch.alignment || '—') + '</div></div>';
-  html += '</div>';
-  html += '<div class="ab-row" style="margin:10px 0">';
+  html += '</div><div class="ab-row" style="margin:10px 0">';
   for (var i = 0; i < ABS.length; i++) {
     var a = ABS[i];
     html += '<div class="ab-cell"><div class="an">' + a + '</div><div class="as">' + ch.abilities[a] + '</div><div class="am">' + mstr(ch.abilities[a]) + '</div></div>';
@@ -394,21 +356,19 @@ function s6() {
   html += '<div style="font-size:0.88rem;margin-bottom:14px">Prof Bonus: <strong>+' + pb + '</strong> &nbsp;|&nbsp; Est. HP: <strong>' + hp + '</strong> &nbsp;|&nbsp; Initiative: <strong>' + mstr(ch.abilities.DEX) + '</strong></div>';
   html += '<div class="fg"><label>Additional Notes</label><textarea oninput="ch.notes=this.value" style="min-height:70px">' + he(ch.notes) + '</textarea></div>';
   html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px">';
-  html += '<button onclick="showAiPanel()" style="padding:16px;background:#5a2d82;color:#fff;border:none;border-radius:6px;font-family:Georgia,serif;font-size:0.95rem;font-weight:bold;cursor:pointer">&#10024; Bring to Life with AI</button>';
+  html += '<button onclick="showAiPanel()" style="padding:16px;background:#5a2d82;color:#fff;border:none;border-radius:6px;font-family:Georgia,serif;font-size:0.95rem;font-weight:bold;cursor:pointer">&#10024; Bring to Life</button>';
   html += '<button onclick="showSheet()" style="padding:16px;background:#c9a84c;color:#2c1a0e;border:none;border-radius:6px;font-family:Georgia,serif;font-size:0.95rem;font-weight:bold;cursor:pointer">&#128424; Generate Sheet</button>';
   html += '</div>';
-  html += '<div style="margin-top:10px">';
-  html += '<button onclick="nav(true)" style="padding:10px 24px;background:#d4c090;color:#2c1a0e;border:none;border-radius:4px;font-family:Georgia,serif;font-size:0.92rem;font-weight:bold;cursor:pointer">&#8592; Back</button>';
-  html += '</div>';
+  html += '<div style="margin-top:10px"><button onclick="nav(true)" style="padding:10px 24px;background:#d4c090;color:#2c1a0e;border:none;border-radius:4px;font-family:Georgia,serif;font-size:0.92rem;font-weight:bold;cursor:pointer">&#8592; Back</button></div>';
   return html;
 }
 
+/* ===== HELPERS ===== */
 function toggleSkill(name, checked) {
   var idx = ch.skills.indexOf(name);
   if (checked && idx < 0) ch.skills.push(name);
   else if (!checked && idx >= 0) ch.skills.splice(idx, 1);
 }
-
 function addItem(type, inputId) {
   var el = document.getElementById(inputId);
   if (!el || !el.value.trim()) return;
@@ -416,17 +376,12 @@ function addItem(type, inputId) {
   el.value = '';
   render();
 }
-
-function removeItem(type, i) {
-  ch[type].splice(i, 1);
-  render();
-}
-
+function removeItem(type, i) { ch[type].splice(i, 1); render(); }
 function rollAll() {
   for (var i = 0; i < ABS.length; i++) {
-    var rolls = [Math.ceil(Math.random()*6), Math.ceil(Math.random()*6), Math.ceil(Math.random()*6), Math.ceil(Math.random()*6)];
-    rolls.sort(function(a, b) { return a - b; });
-    ch.abilities[ABS[i]] = rolls[1] + rolls[2] + rolls[3];
+    var r = [Math.ceil(Math.random()*6),Math.ceil(Math.random()*6),Math.ceil(Math.random()*6),Math.ceil(Math.random()*6)];
+    r.sort(function(a,b){return a-b;});
+    ch.abilities[ABS[i]] = r[1]+r[2]+r[3];
   }
   render();
 }
@@ -437,20 +392,18 @@ function showAll(which) {
   document.getElementById('aiPanel').style.display = which === 'ai' ? 'block' : 'none';
   window.scrollTo(0, 0);
 }
-
 function backToBuilder() { showAll('app'); }
 
+/* ===== SHEET ===== */
 function showSheet() {
   var pb = ch.profBonus;
   var estHP = 8 + mval(ch.abilities.CON) + (ch.level - 1) * 5;
   var pp2 = 10 + mval(ch.abilities.WIS) + (ch.skills.indexOf('Perception') >= 0 ? pb : 0);
-
   var abCells = '';
   for (var i = 0; i < ABS.length; i++) {
     var a = ABS[i];
     abCells += '<div class="ab-cell"><div class="an">' + a + '</div><div class="as">' + ch.abilities[a] + '</div><div class="am">' + mstr(ch.abilities[a]) + '</div></div>';
   }
-
   var skHTML = '';
   for (var i = 0; i < SKILLS.length; i++) {
     var sk = SKILLS[i];
@@ -459,24 +412,20 @@ function showSheet() {
     var bs = (b >= 0 ? '+' : '') + b;
     skHTML += '<div><span style="color:' + (prof ? '#8b1a1a' : '#ccc') + ';margin-right:3px">' + (prof ? '&#9679;' : '&#9675;') + '</span>' + sk.n + ' <small style="color:#888">(' + sk.a + ')</small>: <strong>' + bs + '</strong></div>';
   }
-
   var curr = '';
   var cmap = [['CP',ch.cp],['SP',ch.sp],['GP',ch.gp],['EP',ch.ep],['PP',ch.pp]];
-  for (var c = 0; c < cmap.length; c++) { if (cmap[c][1] > 0) curr += cmap[c][0] + ': ' + cmap[c][1] + ' &nbsp; '; }
-
+  for (var c = 0; c < cmap.length; c++) { if (cmap[c][1] > 0) curr += cmap[c][0] + ': ' + cmap[c][1] + ' &nbsp;'; }
   var eqTags = ch.equipment.map(function(e) { return '<span class="stag">' + he(e) + '</span>'; }).join('');
   var spTags = ch.spells.map(function(s) { return '<span class="stag">' + he(s) + '</span>'; }).join('');
 
-  var html = '';
-  html += '<div class="no-print">';
+  var html = '<div class="no-print">';
   html += '<button class="btn btn-gold" onclick="window.print()">&#128424; Print</button>';
   html += '<button class="btn btn-back" onclick="backToBuilder()">&#8592; Builder</button>';
-  html += '<button class="btn btn-purple" onclick="showAiPanel()">&#10024; AI Character</button>';
+  html += '<button class="btn btn-purple" onclick="showAiPanel()">&#10024; Bring to Life</button>';
   html += '</div>';
   html += '<div class="sheet-h1">&#9876; Character Sheet &#9876;</div>';
   html += '<div class="sheet-sub">D&amp;D Character Creator</div>';
-  html += '<div class="sec"><h3>Identity</h3>';
-  html += '<div class="s-row">';
+  html += '<div class="sec"><h3>Identity</h3><div class="s-row">';
   html += '<div class="sf"><label>Name</label><div class="v">' + he(ch.name || '—') + '</div></div>';
   html += '<div class="sf"><label>Player</label><div class="v">' + he(ch.player || '—') + '</div></div>';
   html += '<div class="sf"><label>Race</label><div class="v">' + he(ch.race || '—') + (ch.subrace ? ' (' + he(ch.subrace) + ')' : '') + '</div></div>';
@@ -489,26 +438,21 @@ function showSheet() {
   html += '</div></div>';
   html += '<div class="sec"><h3>Ability Scores</h3><div class="ab-row">' + abCells + '</div>';
   html += '<div style="font-size:0.85rem;display:flex;gap:16px;flex-wrap:wrap">';
-  html += '<span>Proficiency Bonus: <strong>+' + pb + '</strong></span>';
-  html += '<span>Initiative: <strong>' + mstr(ch.abilities.DEX) + '</strong></span>';
-  html += '<span>Passive Perception: <strong>' + pp2 + '</strong></span>';
-  html += '<span>Est. HP: <strong>' + estHP + '</strong></span>';
+  html += '<span>Prof Bonus: <strong>+' + pb + '</strong></span><span>Initiative: <strong>' + mstr(ch.abilities.DEX) + '</strong></span>';
+  html += '<span>Passive Perception: <strong>' + pp2 + '</strong></span><span>Est. HP: <strong>' + estHP + '</strong></span>';
   html += '</div>' + (ch.abilityNotes ? '<div style="font-size:0.82rem;margin-top:6px;color:#555">' + he(ch.abilityNotes) + '</div>' : '') + '</div>';
   html += '<div class="sec"><h3>Skills</h3><div class="sk2">' + skHTML + '</div>';
   html += (ch.proficiencies ? '<div style="margin-top:6px;font-size:0.83rem"><strong>Languages/Proficiencies:</strong> ' + he(ch.proficiencies) + '</div>' : '') + '</div>';
   html += '<div class="sec"><h3>Character Traits</h3><div class="s-row">';
-  html += (ch.traits ? '<div class="sf"><label>Personality Traits</label><div class="v" style="white-space:pre-wrap;font-size:0.88rem">' + he(ch.traits) + '</div></div>' : '');
-  html += (ch.ideals ? '<div class="sf"><label>Ideals</label><div class="v" style="white-space:pre-wrap;font-size:0.88rem">' + he(ch.ideals) + '</div></div>' : '');
-  html += (ch.bonds ? '<div class="sf"><label>Bonds</label><div class="v" style="white-space:pre-wrap;font-size:0.88rem">' + he(ch.bonds) + '</div></div>' : '');
-  html += (ch.flaws ? '<div class="sf"><label>Flaws</label><div class="v" style="white-space:pre-wrap;font-size:0.88rem">' + he(ch.flaws) + '</div></div>' : '');
+  if (ch.traits) html += '<div class="sf"><label>Personality Traits</label><div class="v" style="white-space:pre-wrap;font-size:0.88rem">' + he(ch.traits) + '</div></div>';
+  if (ch.ideals) html += '<div class="sf"><label>Ideals</label><div class="v" style="white-space:pre-wrap;font-size:0.88rem">' + he(ch.ideals) + '</div></div>';
+  if (ch.bonds)  html += '<div class="sf"><label>Bonds</label><div class="v" style="white-space:pre-wrap;font-size:0.88rem">' + he(ch.bonds) + '</div></div>';
+  if (ch.flaws)  html += '<div class="sf"><label>Flaws</label><div class="v" style="white-space:pre-wrap;font-size:0.88rem">' + he(ch.flaws) + '</div></div>';
   html += '</div></div>';
-  if (ch.equipment.length) {
-    html += '<div class="sec"><h3>Equipment</h3>' + eqTags;
-    html += (curr ? '<div style="margin-top:8px;font-size:0.85rem">' + curr + '</div>' : '') + '</div>';
-  }
+  if (ch.equipment.length) { html += '<div class="sec"><h3>Equipment</h3>' + eqTags + (curr ? '<div style="margin-top:8px;font-size:0.85rem">' + curr + '</div>' : '') + '</div>'; }
   if (ch.spells.length || ch.features) {
     html += '<div class="sec"><h3>Spells &amp; Abilities</h3>';
-    if (ch.spellAbility) html += '<div style="font-size:0.83rem;margin-bottom:6px">Spellcasting: <strong>' + he(ch.spellAbility) + '</strong> | Save DC: <strong>' + ch.spellDC + '</strong> | Atk Bonus: <strong>' + he(ch.spellAtk || '—') + '</strong> | Slots: <strong>' + he(ch.spellSlots || '—') + '</strong></div>';
+    if (ch.spellAbility) html += '<div style="font-size:0.83rem;margin-bottom:6px">Spellcasting: <strong>' + he(ch.spellAbility) + '</strong> | Save DC: <strong>' + ch.spellDC + '</strong> | Atk: <strong>' + he(ch.spellAtk || '—') + '</strong> | Slots: <strong>' + he(ch.spellSlots || '—') + '</strong></div>';
     if (ch.spells.length) html += '<div style="margin-bottom:8px">' + spTags + '</div>';
     if (ch.features) html += '<div style="font-size:0.85rem;white-space:pre-wrap">' + he(ch.features) + '</div>';
     html += '</div>';
@@ -520,12 +464,14 @@ function showSheet() {
   showAll('sheet');
 }
 
+/* ===== AI / TEMPLATE GENERATOR ===== */
 function showAiPanel() {
   showAll('ai');
   document.getElementById('aiContent').innerHTML =
     '<div class="ai-header"><h1>&#10024; Character Oracle &#10024;</h1><p>Your hero brought to life</p></div>' +
     '<div style="text-align:center;margin-bottom:24px">' +
       '<button onclick="generateCharacter()" style="padding:14px 36px;background:#5a2d82;color:#fff;border:none;border-radius:6px;font-family:Georgia,serif;font-size:1rem;font-weight:bold;cursor:pointer">&#10024; Generate My Character</button>' +
+      '<p style="color:#7c6a9a;font-size:0.82rem;margin-top:8px">Click multiple times for different results!</p>' +
     '</div>' +
     '<div id="aiResult"></div>' +
     '<div class="ai-actions">' +
@@ -534,25 +480,21 @@ function showAiPanel() {
     '</div>';
 }
 
-function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
-
 function generateCharacter() {
-  var name = ch.name || 'the hero';
-  var race = ch.race || 'wanderer';
-  var cls  = ch.class_ || 'adventurer';
-  var sub  = ch.subclass || '';
-  var bg   = ch.background || 'unknown origins';
-  var align = ch.alignment || 'True Neutral';
-  var lvl  = ch.level;
-
+  var name   = ch.name || 'the hero';
+  var race   = ch.race || 'wanderer';
+  var cls    = ch.class_ || 'adventurer';
+  var sub    = ch.subclass || '';
+  var bg     = ch.background || 'unknown origins';
+  var align  = ch.alignment || 'True Neutral';
+  var lvl    = ch.level;
   var str = ch.abilities.STR, dex = ch.abilities.DEX, con = ch.abilities.CON;
   var intel = ch.abilities.INT, wis = ch.abilities.WIS, cha = ch.abilities.CHA;
 
-  /* -- Derive dominant stat flavour -- */
+  /* dominant stat */
   var stats = [{k:'STR',v:str},{k:'DEX',v:dex},{k:'CON',v:con},{k:'INT',v:intel},{k:'WIS',v:wis},{k:'CHA',v:cha}];
   stats.sort(function(a,b){return b.v-a.v;});
   var top = stats[0].k;
-  var bot = stats[stats.length-1].k;
 
   var statFlavour = {
     STR: ['powerfully built','broad-shouldered and imposing','whose raw physical strength is immediately apparent'],
@@ -563,175 +505,157 @@ function generateCharacter() {
     CHA: ['magnetically charismatic','whose presence commands a room without effort','with a voice and bearing that draws people in']
   };
 
-  /* -- Appearance -- */
-  var hairOptions = {
-    'Elf': ['silver','moonlit white','autumn gold','midnight black'],
-    'High Elf': ['silver','platinum','starlight white'],
-    'Wood Elf': ['chestnut brown','forest green-tinged','auburn'],
-    'Dark Elf': ['white','silver','ash grey'],
-    'Dwarf': ['fiery red','dark brown','iron grey','black'],
-    'Hill Dwarf': ['warm brown','copper red','flecked grey'],
-    'Mountain Dwarf': ['dark black','iron grey','russet'],
-    'Halfling': ['curly brown','sandy blonde','warm chestnut'],
-    'Tiefling': ['jet black','deep violet','blood red'],
-    'Dragonborn': ['none — scaled','nonexistent','replaced by crests'],
-    'Human': ['dark brown','dirty blonde','black','auburn','grey-streaked']
+  /* appearance */
+  var hairMap = {
+    'Elf':['silver','moonlit white','autumn gold','midnight black'],'High Elf':['silver','platinum','starlight white'],
+    'Wood Elf':['chestnut brown','forest green-tinged','auburn'],'Dark Elf':['white','silver','ash grey'],
+    'Dwarf':['fiery red','dark brown','iron grey','black'],'Hill Dwarf':['warm brown','copper red','flecked grey'],
+    'Mountain Dwarf':['dark black','iron grey','russet'],'Halfling':['curly brown','sandy blonde','warm chestnut'],
+    'Tiefling':['jet black','deep violet','blood red'],'Dragonborn':['none — scaled','nonexistent'],
+    'Human':['dark brown','dirty blonde','black','auburn','grey-streaked']
   };
-  var eyeOptions = {
-    'Elf': ['violet','silver','pale blue','amber'],
-    'Tiefling': ['solid gold','burning red','deep violet'],
-    'Dragonborn': ['reptilian gold','amber','deep red'],
-    'Human': ['grey','brown','green','hazel','deep blue']
+  var eyeMap = {
+    'Elf':['violet','silver','pale blue','amber'],'Tiefling':['solid gold','burning red','deep violet'],
+    'Dragonborn':['reptilian gold','amber','deep red'],'Human':['grey','brown','green','hazel','deep blue']
   };
-  var hair = (hairOptions[race] ? pick(hairOptions[race]) : pick(['brown','black','grey','blonde'])) + ' hair';
-  var eyes = (eyeOptions[race] ? pick(eyeOptions[race]) : pick(['grey','amber','brown','green'])) + ' eyes';
+  var hair  = (hairMap[race]  ? pick(hairMap[race])  : pick(['brown','black','grey','blonde'])) + ' hair';
+  var eyes  = (eyeMap[race]   ? pick(eyeMap[race])   : pick(['grey','amber','brown','green'])) + ' eyes';
   var build = pick(statFlavour[top] || statFlavour['STR']);
 
-  /* -- Class combat style -- */
-  var combatStyles = {
-    'Barbarian': 'charges into battle in a fury, shrugging off wounds that would fell lesser warriors, relying on raw power and instinct over finesse.',
-    'Bard': 'fights with flair, weaving magical inspiration and distracting taunts between precise strikes, turning the battlefield into a performance.',
-    'Cleric': 'stands firm at the front, channeling divine power in equal measure as weapon strikes, protecting allies and smiting foes with righteous force.',
-    'Druid': 'uses the environment as a weapon, shifting forms and calling on elemental forces to overwhelm enemies before they can close the distance.',
-    'Fighter': 'is a disciplined, efficient combatant — reading the battlefield quickly, exploiting openings, and outlasting opponents through superior technique.',
-    'Monk': 'flows through combat like water, deflecting strikes and answering with precise, devastating strikes that strike pressure points and stagger opponents.',
-    'Paladin': 'fights with conviction, smiting enemies with divine energy while holding the line for allies, an immovable force of righteous will.',
-    'Ranger': 'prefers to engage from range, tracking movements and choosing the perfect moment to strike, only drawing a blade when forced to.',
-    'Rogue': 'strikes from shadows or blind spots, landing one devastating blow before repositioning — patient, precise, and ruthlessly efficient.',
-    'Sorcerer': 'unleashes raw magical power with little restraint, channeling innate energy into devastating spells with speed that trained wizards envy.',
-    'Warlock': 'fights with eldritch force and unsettling confidence, blasting foes with patron-granted power while unnerving enemies with a preternatural calm.',
-    'Wizard': 'approaches combat like a problem to be solved, casting precisely and deliberately, manipulating the battlefield before the first sword is swung.',
-    'Artificer': 'relies on clever gadgets and constructs, turning every fight into an engineering problem with a tactical solution.',
-    'Blood Hunter': 'fights with grim intensity, marking prey and hunting them relentlessly, willing to shed their own blood to destroy their quarry.'
+  /* combat style */
+  var combatMap = {
+    'Barbarian':'charges into battle in a fury, shrugging off wounds that would fell lesser warriors, relying on raw power and instinct over finesse.',
+    'Bard':'fights with flair, weaving magical inspiration and distracting taunts between precise strikes, turning the battlefield into a performance.',
+    'Cleric':'stands firm at the front, channeling divine power in equal measure as weapon strikes, protecting allies and smiting foes with righteous force.',
+    'Druid':'uses the environment as a weapon, shifting forms and calling on elemental forces to overwhelm enemies before they can close the distance.',
+    'Fighter':'is a disciplined, efficient combatant — reading the battlefield quickly, exploiting openings, and outlasting opponents through superior technique.',
+    'Monk':'flows through combat like water, deflecting strikes and answering with precise, devastating blows that target pressure points and stagger opponents.',
+    'Paladin':'fights with conviction, smiting enemies with divine energy while holding the line for allies — an immovable force of righteous will.',
+    'Ranger':'prefers to engage from range, tracking movements and choosing the perfect moment to strike, only drawing a blade when forced to.',
+    'Rogue':'strikes from shadows or blind spots, landing one devastating blow before repositioning — patient, precise, and ruthlessly efficient.',
+    'Sorcerer':'unleashes raw magical power with little restraint, channeling innate energy into devastating spells with a speed that trained wizards envy.',
+    'Warlock':'fights with eldritch force and unsettling confidence, blasting foes with patron-granted power while unnerving enemies with preternatural calm.',
+    'Wizard':'approaches combat like a problem to be solved, casting precisely and deliberately, manipulating the battlefield before the first sword is swung.',
+    'Artificer':'relies on clever gadgets and constructs, turning every fight into an engineering problem with a tactical solution.',
+    'Blood Hunter':'fights with grim intensity, marking prey and hunting them relentlessly, willing to shed their own blood to destroy their quarry.'
   };
-  var combat = combatStyles[cls] || 'fights with a style honed through hard experience, adapting to each threat with practical, battle-tested instincts.';
-  if (sub) combat = combat + (sub ? ' Their ' + sub + ' training adds a distinct edge to this approach.' : '');
+  var combat = (combatMap[cls] || 'fights with a style honed through hard experience, adapting to each threat with practical, battle-tested instincts.');
+  if (sub) combat += ' Their ' + sub + ' training adds a distinct edge to this approach.';
 
-  /* -- Background flavour -- */
-  var bgOrigins = {
-    'Acolyte': 'raised within the walls of a temple, spending years in devotion and study before the call to adventure proved stronger than the call to prayer.',
-    'Criminal': 'grew up learning that survival meant doing what others would not — bending and breaking rules became second nature long before it became a profession.',
-    'Folk Hero': 'was once an ordinary person thrust into extraordinary circumstances. One defining act of bravery changed everything, and the reputation that followed has been both gift and burden.',
-    'Noble': 'was born into privilege and politics, learning early that power is the only currency that matters — and that it can be taken as easily as given.',
-    'Sage': 'spent years buried in libraries and academies, chasing knowledge with the same obsession others chase gold. What they found in those dusty tomes eventually drove them out into the world.',
-    'Soldier': 'knows the smell of a battlefield and the weight of loss. Years of military service built discipline and loyalty — and left scars that do not show.',
-    'Outlander': 'comes from wild places far from civilization, more comfortable under open sky than any roof, and more fluent in the language of nature than of courts.',
-    'Hermit': 'withdrew from the world seeking answers, and after years of solitude found something — though whether it was wisdom or madness is still debated.',
-    'Sailor': 'has seen every port and survived every storm worth surviving, carrying the restless horizon-hunger that never quite lets sailors stay in one place for long.',
-    'Entertainer': 'learned early that a story well told can open doors, loosen purses, and defuse tensions that swords cannot — a skill that has served well ever since.',
-    'Charlatan': 'built a life on carefully constructed truths, half-truths, and outright lies — and got so good at it they sometimes struggle to remember which is which.',
-    'Urchin': 'clawed up from nothing, raised by the streets and hard lessons, trusting few and owing nothing to anyone.'
+  /* background */
+  var bgMap = {
+    'Acolyte':'raised within the walls of a temple, spending years in devotion and study before the call to adventure proved stronger than the call to prayer.',
+    'Criminal':'grew up learning that survival meant doing what others would not — bending and breaking rules became second nature long before it became a profession.',
+    'Folk Hero':'was once an ordinary person thrust into extraordinary circumstances. One defining act of bravery changed everything, and the reputation that followed has been both gift and burden.',
+    'Noble':'was born into privilege and politics, learning early that power is the only currency that matters — and that it can be taken as easily as given.',
+    'Sage':'spent years buried in libraries and academies, chasing knowledge with an obsession others reserve for gold. What they found in those dusty tomes eventually drove them out into the world.',
+    'Soldier':'knows the smell of a battlefield and the weight of loss. Years of military service built discipline and loyalty — and left scars that do not show.',
+    'Outlander':'comes from wild places far from civilization, more comfortable under open sky than any roof, and more fluent in the language of nature than of courts.',
+    'Hermit':'withdrew from the world seeking answers, and after years of solitude found something — though whether it was wisdom or madness is still debated.',
+    'Sailor':'has seen every port and survived every storm worth surviving, carrying the restless horizon-hunger that never quite lets sailors stay in one place for long.',
+    'Entertainer':'learned early that a story well told can open doors, loosen purses, and defuse tensions that swords cannot — a skill that has served well ever since.',
+    'Charlatan':'built a life on carefully constructed truths, half-truths, and outright lies — and got so good at it they sometimes struggle to remember which is which.',
+    'Urchin':'clawed up from nothing, raised by the streets and hard lessons, trusting few and owing nothing to anyone.',
+    'Spy':'mastered the art of being unremarkable, slipping through rooms and conversations unnoticed, gathering secrets that others would kill to keep.',
+    'Guild Artisan':'learned a trade and the politics that surround it, discovering that every craft has its masters, its rivalries, and its unspoken rules.',
+    'Haunted One':'carries something dark — a memory, a curse, or an encounter with forces beyond understanding — that has changed them in ways they are still reckoning with.'
   };
-  var origin = bgOrigins[bg] || 'carries a past shaped by hardship and choice in equal measure, arriving at the adventuring life through a road few others would have survived.';
+  var origin = bgMap[bg] || 'carries a past shaped by hardship and choice in equal measure, arriving at the adventuring life through a road few others would have survived.';
 
-  /* -- Alignment personality -- */
-  var alignFlavour = {
-    'Lawful Good': 'believes deeply in order and justice, holding themselves to a strict personal code even when no one is watching.',
-    'Neutral Good': 'does what feels right regardless of law or chaos, guided by a genuine desire to help others.',
-    'Chaotic Good': 'follows their own moral compass wherever it leads, unbothered by rules that get in the way of doing good.',
-    'Lawful Neutral': 'values order and structure above all else, believing that stable systems — whatever their nature — are preferable to chaos.',
-    'True Neutral': 'keeps a careful balance, avoiding extremes and judging each situation on its own terms.',
-    'Chaotic Neutral': 'acts on impulse and self-interest, following whims rather than causes, loyal to freedom above all else.',
-    'Lawful Evil': 'pursues personal goals within a rigid framework of rules and hierarchy, understanding that power requires structure.',
-    'Neutral Evil': 'does whatever serves their own interests, loyal only to themselves and indifferent to the harm left behind.',
-    'Chaotic Evil': 'is driven by destruction and self-gratification, with little concern for rules, others, or consequences.'
+  /* alignment */
+  var alignMap = {
+    'Lawful Good':'believes deeply in order and justice, holding themselves to a strict personal code even when no one is watching.',
+    'Neutral Good':'does what feels right regardless of law or chaos, guided by a genuine desire to help others.',
+    'Chaotic Good':'follows their own moral compass wherever it leads, unbothered by rules that get in the way of doing good.',
+    'Lawful Neutral':'values order and structure above all else, believing that stable systems — whatever their nature — are preferable to chaos.',
+    'True Neutral':'keeps a careful balance, avoiding extremes and judging each situation on its own terms.',
+    'Chaotic Neutral':'acts on impulse and self-interest, following whims rather than causes, loyal to freedom above all else.',
+    'Lawful Evil':'pursues personal goals within a rigid framework of rules and hierarchy, understanding that power requires structure.',
+    'Neutral Evil':'does whatever serves their own interests, loyal only to themselves and indifferent to the harm left behind.',
+    'Chaotic Evil':'is driven by destruction and self-gratification, with little concern for rules, others, or consequences.'
   };
-  var alignDesc = alignFlavour[align] || 'navigates the world with a personal moral philosophy that defies easy categorisation.';
+  var alignDesc = alignMap[align] || 'navigates the world with a personal moral philosophy that defies easy categorisation.';
 
-  /* -- Quirks -- */
+  /* quirks, secrets, hooks */
   var quirks = [
     'always sleeps with their back to a wall and one hand on their weapon.',
     'hums softly and tunelessly when thinking through a problem.',
     'collects a small stone from every new place they visit.',
     'never makes a promise lightly — and never breaks one once made.',
     'has an uncanny habit of knowing when someone is lying, and an even more uncanny habit of saying nothing about it.',
-    'talks to their weapons, equipment, or animal companions as though they can understand.',
-    'refuses to eat the last of any food at a table, always leaving something — an old habit whose origin they no longer remember.',
+    'talks to their weapons or equipment as though they can understand.',
+    'refuses to eat the last of any food at a table, always leaving something behind.',
     'traces patterns absentmindedly on surfaces when idle — maps, perhaps, or something older.',
     'is always the first to notice when someone in a room is afraid.',
     'keeps a journal written in a personal cipher no one else can read.'
   ];
-  var quirk = pick(quirks);
-
-  /* -- Secrets -- */
   var secrets = [
     'carries a name that is not their own — the original owner of that name died under circumstances they have never spoken of.',
     'is searching for someone who wronged them deeply, and the search has lasted long enough that revenge and purpose have become indistinguishable.',
-    'has a past connection to an organisation, faction, or power they now actively work against.',
-    'knows something they should not — a secret powerful enough that the wrong people learning of it would be fatal.',
+    'has a past connection to an organisation or faction they now actively work against.',
+    'knows something they should not — a secret powerful enough that the wrong people learning it would be fatal.',
     'survived something that should have killed them and has never fully understood why they lived when others did not.',
-    'has turned down power once before — an offer, a gift, or an inheritance — and wonders sometimes if that was the greatest mistake of their life.',
+    'turned down power once before — an offer, a gift, or an inheritance — and wonders sometimes if that was the greatest mistake of their life.',
     'is not entirely what they appear. The face they show the world is a carefully constructed version of who they used to be.',
     'owes a debt they cannot repay to someone who has never collected — and that patient silence frightens them more than any open threat.'
   ];
-  var secret = pick(secrets);
-
-  /* -- Motivation -- */
-  var motivations = [];
-  if (ch.ideals) motivations.push('Driven by the belief that ' + ch.ideals.split('\n')[0].toLowerCase().replace(/^[^—]*—\s*/,'') + ', every decision is filtered through this lens.');
-  if (ch.bonds) motivations.push(ch.bonds.split('\n')[0]);
-  if (motivations.length === 0) {
-    motivations = [
-      'seeks to prove something — to others, or to themselves — and will not stop until the question is finally answered.',
-      'is driven by a debt, sworn or unspoken, that pulls them forward even when the road is hardest.',
-      'chases a horizon that keeps moving, unsure whether the destination matters as much as the journey itself.'
-    ];
-    motivations = [pick(motivations)];
-  }
-  var motivation = motivations[0];
-
-  /* -- Adventure hook -- */
   var hooks = [
     'A letter arrived recently — unsigned, but written in a hand they recognise. It contained only a location and a date.',
     'Someone has been following them for three days. Whoever it is, they are good enough that most people would never have noticed.',
-    'A name from their past has resurfaced in an unexpected place — connected to something much larger and more dangerous than they bargained for.',
+    'A name from their past has resurfaced in an unexpected place, connected to something much larger and more dangerous than they bargained for.',
     'They were recently offered a job that seemed too simple. It was not simple.',
     'An old ally has gone silent at exactly the wrong moment, and the silence has started to feel like a warning.',
     'They are carrying something that at least two different powerful parties want badly enough to send people after them.',
     'A dream — vivid, recurring, and disturbingly specific — has begun pointing them toward a place they have never been.',
     'A bounty has been posted with their description on it. The crime listed is one they did not commit. Probably.'
   ];
-  var hook = pick(hooks);
 
-  /* -- Epithet -- */
+  /* motivation */
+  var motivation = '';
+  if (ch.bonds) motivation = ch.bonds.split('\n')[0];
+  else motivation = pick([
+    name + ' seeks to prove something — to others, or to themselves — and will not stop until the question is finally answered.',
+    name + ' is driven by a debt, sworn or unspoken, that pulls them forward even when the road is hardest.',
+    name + ' chases a horizon that keeps moving, unsure whether the destination matters as much as the journey itself.'
+  ]);
+
+  /* epithet */
   var epithets = {
-    'Barbarian': ['the Unbroken','Ironblood','the Unrelenting','Stormborn'],
-    'Bard': ['the Silver-Tongued','Songweaver','the Gilded','of a Thousand Tales'],
-    'Cleric': ['the Devoted','the Blessed','Voice of the Unseen','Keeper of the Flame'],
-    'Druid': ['of the Wildwood','the Thornwarden','Voice of the Green','the Rootwalker'],
-    'Fighter': ['Steelbrow','the Unyielding','Ironclad','the Scarred'],
-    'Monk': ['the Still','of the Empty Hand','Dawnfist','the Unmoving'],
-    'Paladin': ['the Just','Oathkeeper','the Shining','Shield of the Faithful'],
-    'Ranger': ['of the Long Road','Duskwalker','the Unseen','Shadowtread'],
-    'Rogue': ['the Ghost','of the Quiet Blade','Nightfall','the Unseen Hand'],
-    'Sorcerer': ['the Stormborn','of the Burning Blood','Skycaller','the Unbound'],
-    'Warlock': ['the Pact-Bound','of the Veiled Eye','the Marked','Shadowpact'],
-    'Wizard': ['the Learned','Arcanist','the Knowing','of the Seventh Circle'],
-    'Artificer': ['the Tinkerer','the Ingenious','of the Clockwork Mind','the Forged'],
-    'Blood Hunter': ['the Cursed','of the Crimson Rite','the Marked','Bloodsworn']
+    'Barbarian':['the Unbroken','Ironblood','the Unrelenting','Stormborn'],
+    'Bard':['the Silver-Tongued','Songweaver','the Gilded','of a Thousand Tales'],
+    'Cleric':['the Devoted','the Blessed','Voice of the Unseen','Keeper of the Flame'],
+    'Druid':['of the Wildwood','the Thornwarden','Voice of the Green','the Rootwalker'],
+    'Fighter':['Steelbrow','the Unyielding','Ironclad','the Scarred'],
+    'Monk':['the Still','of the Empty Hand','Dawnfist','the Unmoving'],
+    'Paladin':['the Just','Oathkeeper','the Shining','Shield of the Faithful'],
+    'Ranger':['of the Long Road','Duskwalker','the Unseen','Shadowtread'],
+    'Rogue':['the Ghost','of the Quiet Blade','Nightfall','the Unseen Hand'],
+    'Sorcerer':['the Stormborn','of the Burning Blood','Skycaller','the Unbound'],
+    'Warlock':['the Pact-Bound','of the Veiled Eye','the Marked','Shadowpact'],
+    'Wizard':['the Learned','Arcanist','the Knowing','of the Seventh Circle'],
+    'Artificer':['the Tinkerer','the Ingenious','of the Clockwork Mind','the Forged'],
+    'Blood Hunter':['the Cursed','of the Crimson Rite','the Marked','Bloodsworn']
   };
-  var epithetList = epithets[cls] || ['the Wanderer','of the Lost Road','the Unnamed','of Uncertain Origin'];
+  var epithetList = epithets[cls] || ['the Wanderer','of the Lost Road','the Unnamed'];
   var epithet = pick(epithetList);
 
-  var estHP = 8 + mval(ch.abilities.CON) + (ch.level - 1) * 5;
+  /* level flavour */
+  var lvlFlavour = lvl >= 10
+    ? 'the marks of long adventuring are written across their face and bearing — this is someone who has seen much and survived it all.'
+    : lvl >= 5
+      ? 'they carry themselves with the quiet confidence of someone who has faced real danger and come out the other side.'
+      : 'there is still a certain freshness to them, tempered already by the first hard lessons of life on the road.';
 
   var profile = {
     epithet: epithet,
-    appearance: name + ' is a ' + build + ' ' + race + ' with ' + hair + ' and ' + eyes + '. ' +
-      'At level ' + lvl + ', ' + (lvl >= 10 ? 'the marks of long adventuring are written across their face and bearing — this is someone who has seen much and survived it all.' : lvl >= 5 ? 'they carry themselves with the quiet confidence of someone who has faced real danger and come out the other side.' : 'there is still a certain freshness to them, tempered already by the first hard lessons of life on the road.') +
-      (ch.equipment.length ? ' They are typically seen with ' + ch.equipment.slice(0,2).join(' and ').toLowerCase() + ' close at hand.' : ''),
-    personality: name + ' ' + alignDesc + ' ' +
-      (ch.traits ? ch.traits.split('\n')[0] : pick(['They are not one for idle conversation, preferring action to words.','They face the world with a dry pragmatism that others sometimes mistake for coldness.','There is a warmth to them that emerges slowly, earned rather than given freely.'])),
-    backstory: name + ' ' + origin + ' ' +
-      'The path that led from that life to this one was neither straight nor easy, marked by ' +
-      pick(['a defining loss that reshaped everything that followed','a chance encounter that opened a door they could not close again','a choice made in desperation that turned out to be the right one']) +
-      '. Now, at level ' + lvl + ', they are ' +
-      (lvl >= 10 ? 'a seasoned force — shaped by years of hard experience into something formidable.' : lvl >= 5 ? 'finding their footing as a genuine power in the world.' : 'still early in their story, but already changed by what they have seen.'),
+    appearance: name + ' is a ' + build + ' ' + race + ' with ' + hair + ' and ' + eyes + '. At level ' + lvl + ', ' + lvlFlavour + (ch.equipment.length ? ' They are typically seen with ' + ch.equipment.slice(0,2).join(' and ').toLowerCase() + ' close at hand.' : ''),
+    personality: name + ' ' + alignDesc + ' ' + (ch.traits ? ch.traits.split('\n')[0] : pick(['They are not one for idle conversation, preferring action to words.','They face the world with a dry pragmatism that others sometimes mistake for coldness.','There is a warmth to them that emerges slowly, earned rather than given freely.'])),
+    backstory: name + ' ' + origin + ' The path that led from that life to this one was marked by ' + pick(['a defining loss that reshaped everything that followed','a chance encounter that opened a door they could not close again','a choice made in desperation that turned out to be the right one']) + '. Now at level ' + lvl + ', they are ' + (lvl >= 10 ? 'a seasoned force shaped by years of hard experience.' : lvl >= 5 ? 'finding their footing as a genuine power in the world.' : 'still early in their story, but already changed by what they have seen.'),
     motivation: motivation,
-    secret: name + ' ' + secret,
-    quirk: name + ' ' + quirk,
+    secret: name + ' ' + pick(secrets),
+    quirk: name + ' ' + pick(quirks),
     combat_style: name + ' ' + combat,
-    hook: hook
+    hook: pick(hooks)
   };
 
   renderAiCharacter(profile);
@@ -741,8 +665,7 @@ function renderAiCharacter(p) {
   var pb = ch.profBonus;
   var estHP = 8 + mval(ch.abilities.CON) + (ch.level - 1) * 5;
 
-  var html = '';
-  html += '<div class="ai-name">' + he(ch.name || 'Unknown Hero') + '</div>';
+  var html = '<div class="ai-name">' + he(ch.name || 'Unknown Hero') + '</div>';
   html += '<div class="ai-class-line">' + he(ch.race || '') + ' &nbsp;&#9679;&nbsp; ' + he(ch.class_ || '') + (ch.subclass ? ' (' + he(ch.subclass) + ')' : '') + ' &nbsp;&#9679;&nbsp; Level ' + ch.level + '<br><em style="color:#9c7fc0">' + he(p.epithet || '') + '</em></div>';
 
   html += '<div class="ai-card"><h3>&#9876; Stats</h3><div class="ai-stat-row">';
@@ -757,24 +680,20 @@ function renderAiCharacter(p) {
   html += '<span>Alignment: <strong style="color:#ffd700">' + he(ch.alignment) + '</strong></span>';
   html += '</div></div>';
 
-  var sections = [
-    ['&#128064; Appearance', p.appearance],
-    ['&#128147; Personality', p.personality],
-    ['&#128214; Backstory', p.backstory]
+  var cards = [
+    ['&#128064; Appearance', p.appearance, false],
+    ['&#128147; Personality', p.personality, false],
+    ['&#128214; Backstory', p.backstory, false],
+    ['&#127775; Motivation', p.motivation, true],
+    ['&#9876; Combat Style', p.combat_style, true],
+    ['&#127927; Quirk', p.quirk, true],
+    ['&#128274; Secret', p.secret, true],
+    ['&#127988; Adventure Hook', p.hook, true]
   ];
-  for (var s = 0; s < sections.length; s++) {
-    html += '<div class="ai-card"><h3>' + sections[s][0] + '</h3><div>' + he(sections[s][1] || '') + '</div></div>';
-  }
-
-  var traits = [
-    ['&#127775; Motivation', p.motivation],
-    ['&#9876; Combat Style', p.combat_style],
-    ['&#127927; Quirk', p.quirk],
-    ['&#128274; Secret', p.secret],
-    ['&#127988; Adventure Hook', p.hook]
-  ];
-  for (var t = 0; t < traits.length; t++) {
-    html += '<div class="ai-card"><h3>' + traits[t][0] + '</h3><div class="ai-trait">' + he(traits[t][1] || '') + '</div></div>';
+  for (var c = 0; c < cards.length; c++) {
+    html += '<div class="ai-card"><h3>' + cards[c][0] + '</h3>';
+    html += cards[c][2] ? '<div class="ai-trait">' + he(cards[c][1] || '') + '</div>' : '<div>' + he(cards[c][1] || '') + '</div>';
+    html += '</div>';
   }
 
   if (ch.equipment.length) {
@@ -784,11 +703,10 @@ function renderAiCharacter(p) {
     }
     html += '</div>';
   }
-
   if (ch.spells.length) {
     html += '<div class="ai-card"><h3>&#10024; Spells</h3>';
-    for (var sp = 0; sp < ch.spells.length; sp++) {
-      html += '<span class="stag" style="background:#1a2845;border-color:#4d7cff44;color:#b3c8ff">' + he(ch.spells[sp]) + '</span>';
+    for (var s = 0; s < ch.spells.length; s++) {
+      html += '<span class="stag" style="background:#1a2845;border-color:#4d7cff44;color:#b3c8ff">' + he(ch.spells[s]) + '</span>';
     }
     html += '</div>';
   }
